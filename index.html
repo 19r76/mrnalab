@@ -1,0 +1,169 @@
+html
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- SEO & Metadata -->
+    <title>mRNAlab.it | The Code of the Future</title>
+    <meta name="description" content="mRNAlab.it - Ricerca e innovazione nel campo dell'mRNA. Decodifichiamo il codice del futuro per soluzioni biotecnologiche d'avanguardia.">
+    <meta name="keywords" content="mRNA, biotech, biotecnologie, ricerca scientifica, codice genetico, mRNAlab">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph (Anteprime Social & WhatsApp) -->
+    <meta property="og:title" content="mRNAlab.it | The Code of the Future">
+    <meta property="og:description" content="Innovazione e ricerca avanzata sulle tecnologie mRNA.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.mrnalab.it">
+
+    <style>
+        :root {
+            --red-pure: #ff0000;
+            --red-glow: rgba(255, 0, 0, 0.6);
+            --silver-bright: #ffffff;
+        }
+
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            background: #000; 
+            overflow: hidden; display: flex; justify-content: center; align-items: center; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .content {
+            position: relative;
+            z-index: 100;
+            text-align: center;
+            pointer-events: none;
+            transform: translateZ(0);
+        }
+
+        h1 { 
+            margin: 0;
+            font-size: clamp(2rem, 9vw, 6rem); 
+            font-weight: 200; 
+            letter-spacing: 0.1em; 
+            color: var(--red-pure);
+            filter: drop-shadow(0 0 15px var(--red-glow));
+            animation: fluidFloat 6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+            will-change: transform;
+        }
+
+        h1 .brand { text-transform: uppercase; }
+
+        .tagline { 
+            margin-top: 15px;
+            font-size: clamp(0.7rem, 1.5vw, 1.1rem); 
+            font-weight: 300; 
+            text-transform: uppercase;
+            color: var(--silver-bright);
+            letter-spacing: 1.1em;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+            opacity: 0.8;
+            display: block;
+        }
+
+        @keyframes fluidFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .rna-viewport {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100vw; height: 100vh;
+            perspective: 1200px;
+            z-index: 1;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .helix {
+            position: relative;
+            width: 100%; height: 100%;
+            transform-style: preserve-3d;
+            animation: rotateRNA 20s linear infinite;
+        }
+
+        .node {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 7px; height: 7px;
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 15px var(--red-pure), 0 0 30px var(--red-pure);
+            margin-top: -3.5px; margin-left: -3.5px;
+        }
+
+        @keyframes rotateRNA {
+            from { transform: rotateY(0deg) rotateX(12deg); }
+            to { transform: rotateY(360deg) rotateX(12deg); }
+        }
+
+        /* Configurazione nodi (mRNA sequence) */
+        .node:nth-child(n) { transform: translateY(calc(var(--y) * 1px)) rotateY(calc(var(--r) * 1deg)) translateX(280px); }
+        
+        .node:nth-child(1)  { --y: -300; --r: 0; }   .node:nth-child(2)  { --y: -290; --r: 18; }
+        .node:nth-child(3)  { --y: -280; --r: 36; }  .node:nth-child(4)  { --y: -270; --r: 54; }
+        .node:nth-child(5)  { --y: -260; --r: 72; }  .node:nth-child(6)  { --y: -250; --r: 90; }
+        .node:nth-child(7)  { --y: -240; --r: 108; } .node:nth-child(8)  { --y: -230; --r: 126; }
+        .node:nth-child(9)  { --y: -220; --r: 144; } .node:nth-child(10) { --y: -210; --r: 162; }
+        .node:nth-child(11) { --y: -200; --r: 180; } .node:nth-child(12) { --y: -190; --r: 198; }
+        .node:nth-child(13) { --y: -180; --r: 216; } .node:nth-child(14) { --y: -170; --r: 234; }
+        .node:nth-child(15) { --y: -160; --r: 252; } .node:nth-child(16) { --y: -150; --r: 270; }
+        .node:nth-child(17) { --y: -140; --r: 288; } .node:nth-child(18) { --y: -130; --r: 306; }
+        .node:nth-child(19) { --y: -120; --r: 324; } .node:nth-child(20) { --y: -110; --r: 342; }
+        .node:nth-child(21) { --y: -100; --r: 360; } .node:nth-child(22) { --y: -90;  --r: 378; }
+        .node:nth-child(23) { --y: -80;  --r: 396; } .node:nth-child(24) { --y: -70;  --r: 414; }
+        .node:nth-child(25) { --y: -60;  --r: 432; } .node:nth-child(26) { --y: -50;  --r: 450; }
+        .node:nth-child(27) { --y: -40;  --r: 468; } .node:nth-child(28) { --y: -30;  --r: 486; }
+        .node:nth-child(29) { --y: -20;  --r: 504; } .node:nth-child(30) { --y: -10;  --r: 522; }
+        .node:nth-child(31) { --y: 0;    --r: 540; } .node:nth-child(32) { --y: 10;   --r: 558; }
+        .node:nth-child(33) { --y: 20;   --r: 576; } .node:nth-child(34) { --y: 30;   --r: 594; }
+        .node:nth-child(35) { --y: 40;   --r: 612; } .node:nth-child(36) { --y: 50;   --r: 630; }
+        .node:nth-child(37) { --y: 60;   --r: 648; } .node:nth-child(38) { --y: 70;   --r: 666; }
+        .node:nth-child(39) { --y: 80;   --r: 684; } .node:nth-child(40) { --y: 90;   --r: 702; }
+        .node:nth-child(41) { --y: 100;  --r: 720; } .node:nth-child(42) { --y: 110;  --r: 738; }
+        .node:nth-child(43) { --y: 120;  --r: 756; } .node:nth-child(44) { --y: 130;  --r: 774; }
+        .node:nth-child(45) { --y: 140;  --r: 792; } .node:nth-child(46) { --y: 150;  --r: 810; }
+        .node:nth-child(47) { --y: 160;  --r: 828; } .node:nth-child(48) { --y: 170;  --r: 846; }
+        .node:nth-child(49) { --y: 180;  --r: 864; } .node:nth-child(50) { --y: 190;  --r: 882; }
+        .node:nth-child(51) { --y: 200;  --r: 900; } .node:nth-child(52) { --y: 210;  --r: 918; }
+        .node:nth-child(53) { --y: 220;  --r: 936; } .node:nth-child(54) { --y: 230;  --r: 954; }
+        .node:nth-child(55) { --y: 240;  --r: 972; } .node:nth-child(56) { --y: 250;  --r: 990; }
+        .node:nth-child(57) { --y: 260;  --r: 1008; } .node:nth-child(58) { --y: 270;  --r: 1026; }
+        .node:nth-child(59) { --y: 280;  --r: 1044; } .node:nth-child(60) { --y: 290;  --r: 1062; }
+    </style>
+</head>
+<body>
+
+    <div class="rna-viewport">
+        <div class="helix">
+            <!-- Sequenza mRNA di 60 nodi -->
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+        </div>
+    </div>
+
+    <div class="content">
+        <h1 aria-label="mRNAlab.it">
+            <span>www.m</span><span class="brand">RNA</span><span>lab.it</span>
+        </h1>
+        <div class="tagline">THE CODE OF THE FUTURE</div>
+    </div>
+
+    <!-- CONTACT INFO: mr76@tiscali.it -->
+</body>
+</html>
