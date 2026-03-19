@@ -61,74 +61,59 @@
     let vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // 1. ATTIVAZIONE CORE (GIÀ FUNZIONANTE)
+    // PUNTO 2: Inizializzazione (Già attiva se il banner è verde)
     Module().then(instance => {
         vaultInstance = instance;
-        notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
-        notify.style.color = "var(--green)";
+        console.log("🔒 CORE BINARIO CONNESSO");
     }).catch(err => {
-        notify.innerText = "ERRORE CRITICO: CORE NON TROVATO";
+        notify.innerText = "ERRORE: CORE NON TROVATO";
         notify.style.color = "var(--red)";
     });
 
-    // 2. FUNZIONE BLINDATURA (TASTO B - SIGILLA PASSPHRASE)
+    // PUNTO 3: Funzione di Blindatura
     function eseguiBlindaturaWASM() {
-        const msg = document.getElementById("msg").value;
-        const kp = document.getElementById("kp").value;
+        console.log("Tentativo di blindatura..."); // Controlla in F12
+        
+        const testo = document.getElementById("msg").value;
+        const pass = document.getElementById("kp").value;
+        const output = document.getElementById("sealed-pass");
 
-        if (!vaultInstance) return;
-        if (!msg || !kp) {
-            notify.innerText = "ERRORE: DATI MANCANTI";
+        if (!vaultInstance) {
+            alert("Il sistema si sta ancora caricando...");
+            return;
+        }
+
+        if (!testo || !pass) {
+            notify.innerText = "ERRORE: INSERIRE MESSAGGIO E PASSPHRASE";
+            notify.style.color = "var(--red)";
             return;
         }
 
         try {
-            // Chiamata alla logica C++ blindata
-            const res = vaultInstance.cifraMessaggio(msg, kp);
-            document.getElementById("sealed-pass").value = res;
+            // Chiamata alla funzione C++
+            const risultato = vaultInstance.cifraMessaggio(testo, pass);
+            output.value = risultato;
             
             notify.innerText = "CRIPTAZIONE BINARIA COMPLETATA";
             notify.style.background = "var(--green)";
             notify.style.color = "#000";
-            setTimeout(() => { notify.style.background = "rgba(0,0,0,0.95)"; notify.style.color = "var(--green)"; }, 2000);
+            
+            setTimeout(() => {
+                notify.style.background = "rgba(0,0,0,0.95)";
+                notify.style.color = "var(--green)";
+            }, 2000);
         } catch (e) {
+            console.error("Errore WASM:", e);
             notify.innerText = "VIOLAZIONE CORE RILEVATA";
         }
     }
 
-    // 3. GENERAZIONE SID (PANNELLO CENTRALE)
+    // Altre funzioni di supporto
     function genSID() {
-        const alpha = document.getElementById("alpha");
-        alpha.value = "SID-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-        notify.innerText = "SESSION ID GENERATO";
-    }
-
-    // 4. VALIDAZIONE PASSPHRASE (SBLOCCA I TASTI GRIGI)
-    function validateBlindatura(val) {
-        const btn = document.getElementById("btn-backup-priv");
-        const icon = document.getElementById("check-icon");
-        if(val.length >= 15) {
-            btn.disabled = false;
-            icon.innerText = "[OK]";
-            icon.classList.add("active-green");
-        } else {
-            btn.disabled = true;
-            icon.innerText = "[ ]";
-            icon.classList.remove("active-green");
-        }
-    }
-
-    // 5. PANIC BUTTON & WIPE (TASTI ROSSI)
-    function activatePanic() {
-        document.getElementById("panic-overlay").style.display = "flex";
-    }
-
-    function instantWipe() {
-        if(confirm("☣️ ATTENZIONE: CANCELLARE TUTTI I DATI DI SESSIONE?")) {
-            location.reload();
-        }
+        document.getElementById("alpha").value = "SID-" + Math.random().toString(36).substr(2, 9).toUpperCase();
     }
 </script>
+
 
 
 </body>
