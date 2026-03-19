@@ -58,35 +58,27 @@
     let vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // Funzione di inizializzazione sicura
-    function setupVault(instance) {
-        vaultInstance = instance;
+    // Dato che il tuo JS definisce 'var Module', usiamo il callback di sistema
+    Module.onRuntimeInitialized = function() {
+        vaultInstance = Module;
         if (notify) {
             notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
             notify.style.color = "var(--green)";
         }
-        console.log("Sistema pronto.");
-    }
+        console.log("WebAssembly caricato con successo!");
+        
+        // Se il tuo programma ha bisogno di una funzione di avvio, chiamala qui
+        // esempio: Module._main(); 
+    };
 
-    // Controllo come è strutturato segreto.js
-    try {
-        if (typeof Module === 'function') {
-            // Se è una funzione (metodo moderno)
-            Module().then(setupVault).catch(err => {
-                console.error(err);
-                if(notify) notify.innerText = "ERRORE CARICAMENTO WASM";
-            });
-        } else if (typeof Module === 'object') {
-            // Se è un oggetto (metodo classico Emscripten)
-            Module.onRuntimeInitialized = function() {
-                setupVault(Module);
-            };
+    // Controllo di sicurezza se non carica
+    setTimeout(() => {
+        if (!vaultInstance && notify) {
+            notify.innerText = "ERRORE: VERIFICARE FILE .WASM";
+            notify.style.color = "var(--red)";
         }
-    } catch (e) {
-        console.error("Errore inizializzazione:", e);
-    }
+    }, 5000);
 </script>
-
 
 
         notify.style.color = "var(--red)";
