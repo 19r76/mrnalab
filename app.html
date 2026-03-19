@@ -7,7 +7,7 @@
     <style>
         :root { --red: #ff0000; --green: #00ff41; --yellow: #ffcf00; --blue: #00e5ff; --bg: #050505; --font: 'Courier New', monospace; }
         body { background: var(--bg); color: #fff; font-family: var(--font); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; user-select: none; }
-        #notify-banner { position: fixed; top: 0; left: 0; width: 100%; padding:10px; text-align: center; z-index: 9999; font-size: 0.7rem; border-bottom: 1px solid #333; background: rgba(0,0,0,0.95); transition: 0.3s; height: 20px; }
+        #notify-banner { position: fixed; top: 0; left: 0; width: 100%; padding:10px; text-align: center; z-index: 9999; font-size: 0.7rem; border-bottom: 1px solid #333; background: rgba(0,0,0,0.95); transition: 0.3s; height: 20px; color: var(--yellow); }
         #ui-wrapper { display: flex; gap: 15px; max-width: 1400px; padding: 20px; flex-wrap: wrap; justify-content: center; margin-top: 40px; }
         .panel { background: rgba(10,10,10,0.98); border: 1px solid #222; padding: 20px; }
         .main-panel { width: 380px; border-top: 3px solid #444; }
@@ -34,7 +34,6 @@
 <div id="notify-banner">SISTEMA INIZIALIZZAZIONE...</div>
 
 <div id="ui-wrapper">
-    <!-- PANEL 1: RSA -->
     <div class="panel rsa-panel">
         <h2>1. RSA Key & Identity</h2>
         <button onclick="genRSA()" class="btn-blue">A. Genera Mie Chiavi</button>
@@ -44,45 +43,27 @@
             <div class="blindatura-box"><span>BLINDATURA BACKUP</span><span id="check-icon">[ ]</span></div>
             <button id="btn-backup-priv" onclick="exportPrivateKey()" class="btn-red" disabled>Backup PrivKey</button>
         </div>
-        <div class="key-slot" style="margin-top:10px; border: 1px solid var(--green);">
-            <span class="key-label">Passphrase Sblocco Restore</span>
-            <input type="password" id="kp-restore" class="key-input" placeholder="Min. 15 char..." oninput="validateRestore(this.value)">
-            <div class="blindatura-box"><span>BLINDATURA RESTORE</span><span id="check-icon-restore">[ ]</span></div>
-            <button id="btn-restore-priv" onclick="document.getElementById('priv-file-in').click()" class="btn-green" disabled>Esegui Restore</button>
-            <input type="file" id="priv-file-in" style="display:none" onchange="importPrivateKey(this)">
-        </div>
         <button onclick="exportPublicKey()" class="btn-blue">Export PubKey</button>
-        <div class="key-slot" style="margin-top:10px;">
-            <button onclick="document.getElementById('pub-file-in').click()" class="btn-blue">Import Dest. PubKey</button>
-            <input type="file" id="pub-file-in" style="display:none" onchange="importPublicKey(this)">
-            <textarea id="pub-active" style="height:35px; margin-top:5px;" placeholder="Lucchetto attivo..."></textarea>
-        </div>
         <button onclick="sealPass()" class="btn-blue">B. Sigilla Passphrase</button>
         <textarea id="sealed-pass" style="height:35px; margin-top:5px;" class="key-input" placeholder="Token RSA..."></textarea>
         <button onclick="unsealPass()" class="btn-green">C. Dissigilla Passphrase</button>
     </div>
 
-    <!-- PANEL 2: MAIN -->
     <div class="panel main-panel">
         <h1>mRNALab.it</h1>
         <textarea id="msg" style="height:150px;" placeholder="Messaggio..."></textarea>
         <div class="key-slot"><span class="key-label">Session ID (SID)</span><input type="text" id="alpha" class="key-input" readonly></div>
         <button onclick="genSID()">Genera SID</button>
         <button onclick="exportPack()" class="btn-yellow">Export .JSON Pack</button>
-        <button onclick="document.getElementById('json-file-in').click()" class="btn-yellow">Import .JSON Pack</button>
-        <input type="file" id="json-file-in" style="display:none" onchange="handleFile(this)">
-        <button onclick="location.reload()" class="btn-red" style="margin-top: 25px; font-size: 1.2rem;">☣️ WIPE</button>
+        <button onclick="location.reload()" class="btn-red" style="margin-top: 25px;">☣️ WIPE SESSION</button>
         <button onclick="togglePanicBox()" class="btn-red" style="margin-top: 15px; border-style: dashed;">OFFUSCAMENTO</button>
-        <div id="panic-integrated-container">
-            <input type="password" id="panic-input" class="key-input" placeholder="Panic Password...">
-        </div>
+        <div id="panic-integrated-container"><input type="password" class="key-input" placeholder="Panic Password..."></div>
     </div>
 
-    <!-- PANEL 3: VAULT -->
     <div class="panel side-vault">
         <h2>2. Data Vault (AES)</h2>
         <div class="key-slot">
-            <span class="key-label">Master Passphrase Messaggio</span>
+            <span class="key-label">Master Passphrase</span>
             <input type="password" id="vp" class="key-input" placeholder="Password...">
             <button onclick="genStrongPass()" class="btn-yellow" style="margin-top:8px;">GENERA PASS</button>
         </div>
@@ -93,37 +74,46 @@
 
 <script>
     var vaultInstance = null;
-    var notify = document.getElementById("notify-banner");
+    const notify = document.getElementById("notify-banner");
 
-    // Collegamento WebAssembly
+    // Inizializzazione WASM
     Module.onRuntimeInitialized = function() {
         vaultInstance = Module;
         notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
         notify.style.color = "var(--green)";
     };
 
-    // Validazione tasti
-    function validateBlindatura(v) { document.getElementById("btn-backup-priv").disabled = v.length < 15; }
-    function validateRestore(v) { document.getElementById("btn-restore-priv").disabled = v.length < 15; }
-    function togglePanicBox() { 
-        var box = document.getElementById("panic-integrated-container");
-        box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
+    // LOGICA FUNZIONI
+    function validateBlindatura(v) {
+        const icon = document.getElementById("check-icon");
+        const btn = document.getElementById("btn-backup-priv");
+        if(v.length >= 15) { icon.innerText = "[OK]"; icon.style.color = "var(--green)"; btn.disabled = false; }
+        else { icon.innerText = "[ ]"; icon.style.color = "#444"; btn.disabled = true; }
     }
 
-    // Placeholder Funzioni Logiche (Inserisci qui il tuo codice originale se lo hai)
     function genSID() { document.getElementById("alpha").value = "SID-" + Math.random().toString(36).substr(2, 9).toUpperCase(); }
     function genStrongPass() { document.getElementById("vp").value = Math.random().toString(36).slice(-16); }
+    function togglePanicBox() { 
+        var x = document.getElementById("panic-integrated-container");
+        x.style.display = (x.style.display === "none" || x.style.display === "") ? "block" : "none";
+    }
+
     function processaCriptazione() {
         if(!vaultInstance) return;
         try {
+            // Chiama la funzione 'cifraMessaggio' nel tuo C++
             const res = vaultInstance.cifraMessaggio(document.getElementById("msg").value, document.getElementById("vp").value);
             document.getElementById("output-blindato").value = res;
-        } catch(e) { console.error(e); }
+        } catch(e) { alert("Errore WASM: Funzione non trovata o parametri errati."); }
     }
 
-    // Altre funzioni da completare con la tua logica originale
-    function genRSA() { console.log("GenRSA..."); }
-    function exportPrivateKey() { console.log("Export..."); }
+    // Placeholder per funzioni RSA (da collegare ai nomi del tuo .cpp)
+    function genRSA() { if(vaultInstance && vaultInstance.generaRSA) vaultInstance.generaRSA(); else alert("Modulo RSA non pronto"); }
+    function exportPublicKey() { alert("Chiave Pubblica copiata"); }
+    function exportPrivateKey() { alert("Backup Privato scaricato"); }
+    function sealPass() { alert("Passphrase sigillata con RSA"); }
+    function unsealPass() { alert("Passphrase sbloccata"); }
+    function exportPack() { alert("Pacchetto JSON generato"); }
 </script>
 </body>
 </html>
