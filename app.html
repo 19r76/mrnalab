@@ -58,30 +58,35 @@
     let vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // Funzione per segnare il modulo come pronto
-    function moduloPronto(instance) {
+    // Funzione di inizializzazione sicura
+    function setupVault(instance) {
         vaultInstance = instance;
-        if(notify) {
+        if (notify) {
             notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
-            notify.style.color = "#00ff00"; // Verde
+            notify.style.color = "var(--green)";
         }
-        console.log("Modulo caricato correttamente!");
+        console.log("Sistema pronto.");
     }
 
-    // Prova il metodo 1 (Funzione/Promise)
-    if (typeof Module === 'function') {
-        Module().then(moduloPronto).catch(err => {
-            console.error("Errore caricamento:", err);
-            if(notify) notify.innerText = "ERRORE CRITICO: MODULO NON CARICATO";
-        });
-    } 
-    // Prova il metodo 2 (Oggetto globale)
-    else {
-        Module.onRuntimeInitialized = function() {
-            moduloPronto(Module);
-        };
+    // Controllo come è strutturato segreto.js
+    try {
+        if (typeof Module === 'function') {
+            // Se è una funzione (metodo moderno)
+            Module().then(setupVault).catch(err => {
+                console.error(err);
+                if(notify) notify.innerText = "ERRORE CARICAMENTO WASM";
+            });
+        } else if (typeof Module === 'object') {
+            // Se è un oggetto (metodo classico Emscripten)
+            Module.onRuntimeInitialized = function() {
+                setupVault(Module);
+            };
+        }
+    } catch (e) {
+        console.error("Errore inizializzazione:", e);
     }
 </script>
+
 
 
         notify.style.color = "var(--red)";
