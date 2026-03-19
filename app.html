@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <title>mRNALab | BlackBox v22.2 FINAL-GUARD</title>
+    <!-- INTEGRAZIONE PONTE BINARIO -->
     <script src="segreto.js"></script>
     <style>
         :root { --red: #ff0000; --green: #00ff41; --yellow: #ffcf00; --blue: #00e5ff; --bg: #050505; --font: 'Courier New', monospace; }
         body { background: var(--bg); color: #fff; font-family: var(--font); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; user-select: none; }
-        #notify-banner { position: fixed; top: 0; left: 0; width: 100%; padding:10px; text-align: center; z-index: 9999; font-size: 0.7rem; border-bottom: 1px solid #333; background: rgba(0,0,0,0.95); transition: 0.3s; height: 20px; color: var(--yellow); }
-        #ui-wrapper { display: flex; gap: 15px; max-width: 1400px; padding: 20px; flex-wrap: wrap; justify-content: center; margin-top: 40px; }
+        #notify-banner { position: fixed; top: 0; left: 0; width: 100%; padding:10px; text-align: center; z-index: 9999; font-size: 0.7rem; border-bottom: 1px solid #333; background: rgba(0,0,0,0.95); transition: 0.3s; height: 20px; }
+        .notify-error { background: var(--red) !important; color: #fff; }
+        .notify-success { background: var(--green) !important; color: #000; }
+        #ui-wrapper { display: flex; gap: 15px; max-width: 1400px; padding: 20px; flex-wrap: wrap; justify-content: center; }
         .panel { background: rgba(10,10,10,0.98); border: 1px solid #222; padding: 20px; }
         .main-panel { width: 380px; border-top: 3px solid #444; }
         .side-vault { width: 320px; border: 1px solid var(--red); border-top: 3px solid var(--red); }
@@ -19,21 +22,29 @@
         .key-slot { background: #080808; border: 1px solid #1a1a1a; padding: 8px; margin-bottom: 8px; position: relative; }
         .key-label { font-size: 0.5rem; color: #555; text-transform: uppercase; display: block; margin-bottom: 4px; }
         .blindatura-box { border: 1px groove #444; padding: 10px; margin: 5px 0; display: flex; align-items: center; justify-content: space-between; font-size: 0.55rem; color: #888; }
+        #check-icon, #check-icon-restore { font-size: 0.8rem; font-weight: bold; color: #444; }
         button { width: 100%; background: transparent; border: 1px solid #444; color: #888; padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 0.5rem; font-weight: 900; margin-top: 5px; transition: 0.2s; }
-        button:hover:not(:disabled) { background: #fff; color: #000; }
-        button:disabled { opacity: 0.2; cursor: not-allowed; }
+        button:not(:disabled):hover { background: #fff; color: #000; }
+        button:disabled { cursor: not-allowed; opacity: 0.2; }
         .btn-blue { border-color: var(--blue) !important; color: var(--blue) !important; }
         .btn-red { border-color: var(--red) !important; color: var(--red) !important; }
         .btn-green { border-color: var(--green) !important; color: var(--green) !important; }
         .btn-yellow { border-color: var(--yellow) !important; color: var(--yellow) !important; }
-        #panic-integrated-container { display: none; margin-top: 10px; border: 1px solid var(--red); padding: 10px; }
+        #panic-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; display: none; }
+        #panic-integrated-container { display: none; margin-top: 10px; position: relative; z-index: 10001; border: 1px solid var(--red); background: #050505; padding: 10px; }
+        .panic-flex { display: flex; align-items: center; gap: 5px; }
+        .panic-input-box { background: #000; border: 1px solid #222; color: var(--red); flex-grow: 1; font-family: var(--font); font-size: 0.6rem; padding: 5px; outline: none; }
+        .panic-btn-icon { width: 30px !important; margin-top: 0 !important; border-color: var(--red) !important; color: var(--red) !important; }
+        .eye-btn { cursor: pointer; color: #444; font-size: 0.7rem; padding: 0 5px; user-select: none; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-<div id="notify-banner">SISTEMA INIZIALIZZAZIONE...</div>
+<div id="panic-overlay"></div>
+<div id="notify-banner">SISTEMA IN ATTESA...</div>
 
 <div id="ui-wrapper">
+    <!-- PANEL 1: RSA -->
     <div class="panel rsa-panel">
         <h2>1. RSA Key & Identity</h2>
         <button onclick="genRSA()" class="btn-blue">A. Genera Mie Chiavi</button>
@@ -43,27 +54,56 @@
             <div class="blindatura-box"><span>BLINDATURA BACKUP</span><span id="check-icon">[ ]</span></div>
             <button id="btn-backup-priv" onclick="exportPrivateKey()" class="btn-red" disabled>Backup PrivKey</button>
         </div>
+        <div class="key-slot" style="margin-top:10px; border: 1px solid var(--green);">
+            <span class="key-label">Passphrase Sblocco Restore</span>
+            <input type="password" id="kp-restore" class="key-input" placeholder="Min. 15 char..." oninput="validateRestore(this.value)">
+            <div class="blindatura-box"><span>BLINDATURA RESTORE</span><span id="check-icon-restore">[ ]</span></div>
+            <button id="btn-restore-priv" onclick="document.getElementById('priv-file-in').click()" class="btn-green" disabled>Esegui Restore</button>
+            <input type="file" id="priv-file-in" style="display:none" onchange="importPrivateKey(this)">
+        </div>
         <button onclick="exportPublicKey()" class="btn-blue">Export PubKey</button>
+        <div class="key-slot" style="margin-top:10px;">
+            <button onclick="document.getElementById('pub-file-in').click()" class="btn-blue">Import Dest. PubKey</button>
+            <input type="file" id="pub-file-in" style="display:none" onchange="importPublicKey(this)">
+            <textarea id="pub-active" style="height:35px; margin-top:5px;" placeholder="Lucchetto attivo..."></textarea>
+        </div>
         <button onclick="sealPass()" class="btn-blue">B. Sigilla Passphrase</button>
         <textarea id="sealed-pass" style="height:35px; margin-top:5px;" class="key-input" placeholder="Token RSA..."></textarea>
         <button onclick="unsealPass()" class="btn-green">C. Dissigilla Passphrase</button>
     </div>
 
+    <!-- PANEL 2: MAIN -->
     <div class="panel main-panel">
         <h1>mRNALab.it</h1>
         <textarea id="msg" style="height:150px;" placeholder="Messaggio..."></textarea>
-        <div class="key-slot"><span class="key-label">Session ID (SID)</span><input type="text" id="alpha" class="key-input" readonly></div>
+        <div class="key-slot">
+            <span class="key-label">Session ID (SID)</span>
+            <input type="text" id="alpha" class="key-input" readonly>
+        </div>
         <button onclick="genSID()">Genera SID</button>
         <button onclick="exportPack()" class="btn-yellow">Export .JSON Pack</button>
-        <button onclick="location.reload()" class="btn-red" style="margin-top: 25px;">☣️ WIPE SESSION</button>
-        <button onclick="togglePanicBox()" class="btn-red" style="margin-top: 15px; border-style: dashed;">OFFUSCAMENTO</button>
-        <div id="panic-integrated-container"><input type="password" class="key-input" placeholder="Panic Password..."></div>
+        <button onclick="document.getElementById('json-file-in').click()" class="btn-yellow">Import .JSON Pack</button>
+        <input type="file" id="json-file-in" style="display:none" onchange="handleFile(this)">
+        
+        <button onclick="instantWipe()" class="btn-red" style="margin-top: 25px; font-size: 1.5rem; background: rgba(255,0,0,0.1); border-width: 2px;">☣️</button>
+        
+        <button onclick="togglePanicBox()" class="btn-red" style="margin-top: 15px; border-style: dashed;"> OFFUSCAMENTO </button>
+        
+        <div id="panic-integrated-container">
+            <span class="key-label">Passcode di Sicurezza</span>
+            <div class="panic-flex">
+                <input type="password" id="panic-input" class="panic-input-box" placeholder="Password..." oninput="checkAutoUnlock(this.value)">
+                <span class="eye-btn" onclick="togglePanicEye()">👁️</span>
+                <button onclick="activatePanicLock()" class="panic-btn-icon">🔒</button>
+            </div>
+        </div>
     </div>
 
+    <!-- PANEL 3: VAULT -->
     <div class="panel side-vault">
         <h2>2. Data Vault (AES)</h2>
         <div class="key-slot">
-            <span class="key-label">Master Passphrase</span>
+            <span class="key-label">Master Passphrase Messaggio</span>
             <input type="password" id="vp" class="key-input" placeholder="Password...">
             <button onclick="genStrongPass()" class="btn-yellow" style="margin-top:8px;">GENERA PASS</button>
         </div>
@@ -76,14 +116,17 @@
     var vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // Inizializzazione WASM
-    Module.onRuntimeInitialized = function() {
-        vaultInstance = Module;
-        notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
-        notify.style.color = "var(--green)";
-    };
+    // LOGICA DI INIZIALIZZAZIONE COMPATIBILE CON SEGRETO.JS
+    if (typeof Module !== 'undefined') {
+        Module.onRuntimeInitialized = function() {
+            vaultInstance = Module;
+            notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
+            notify.style.color = "var(--green)";
+            console.log("Binary Bridge Active.");
+        };
+    }
 
-    // LOGICA FUNZIONI
+    // FUNZIONI ORIGINALI INTEGRATE
     function validateBlindatura(v) {
         const icon = document.getElementById("check-icon");
         const btn = document.getElementById("btn-backup-priv");
@@ -91,29 +134,47 @@
         else { icon.innerText = "[ ]"; icon.style.color = "#444"; btn.disabled = true; }
     }
 
-    function genSID() { document.getElementById("alpha").value = "SID-" + Math.random().toString(36).substr(2, 9).toUpperCase(); }
-    function genStrongPass() { document.getElementById("vp").value = Math.random().toString(36).slice(-16); }
-    function togglePanicBox() { 
-        var x = document.getElementById("panic-integrated-container");
+    function validateRestore(v) {
+        const icon = document.getElementById("check-icon-restore");
+        const btn = document.getElementById("btn-restore-priv");
+        if(v.length >= 15) { icon.innerText = "[OK]"; icon.style.color = "var(--green)"; btn.disabled = false; }
+        else { icon.innerText = "[ ]"; icon.style.color = "#444"; btn.disabled = true; }
+    }
+
+    function togglePanicBox() {
+        const x = document.getElementById("panic-integrated-container");
         x.style.display = (x.style.display === "none" || x.style.display === "") ? "block" : "none";
     }
 
-    function processaCriptazione() {
-        if(!vaultInstance) return;
-        try {
-            // Chiama la funzione 'cifraMessaggio' nel tuo C++
-            const res = vaultInstance.cifraMessaggio(document.getElementById("msg").value, document.getElementById("vp").value);
-            document.getElementById("output-blindato").value = res;
-        } catch(e) { alert("Errore WASM: Funzione non trovata o parametri errati."); }
+    function genSID() {
+        document.getElementById("alpha").value = "SID-" + Math.random().toString(36).substr(2, 9).toUpperCase();
     }
 
-    // Placeholder per funzioni RSA (da collegare ai nomi del tuo .cpp)
-    function genRSA() { if(vaultInstance && vaultInstance.generaRSA) vaultInstance.generaRSA(); else alert("Modulo RSA non pronto"); }
-    function exportPublicKey() { alert("Chiave Pubblica copiata"); }
-    function exportPrivateKey() { alert("Backup Privato scaricato"); }
-    function sealPass() { alert("Passphrase sigillata con RSA"); }
-    function unsealPass() { alert("Passphrase sbloccata"); }
-    function exportPack() { alert("Pacchetto JSON generato"); }
+    function genStrongPass() {
+        document.getElementById("vp").value = Math.random().toString(36).slice(-16);
+    }
+
+    function instantWipe() {
+        if(confirm("WIPE TOTALE SESSIONE?")) location.reload();
+    }
+
+    function processaCriptazione() {
+        if(!vaultInstance) { alert("WASM NON PRONTO"); return; }
+        try {
+            const msg = document.getElementById("msg").value;
+            const pass = document.getElementById("vp").value;
+            const res = vaultInstance.cifraMessaggio(msg, pass); // Richiama funzione C++
+            document.getElementById("output-blindato").value = res;
+        } catch(e) { console.error("WASM Error:", e); }
+    }
+
+    // Altri placeholder per funzioni originali
+    function genRSA() { console.log("Funzione RSA da collegare"); }
+    function exportPrivateKey() { alert("Backup scaricato"); }
+    function exportPublicKey() { alert("Public Key Copiata"); }
+    function sealPass() { alert("Passphrase Sigillata"); }
+    function unsealPass() { alert("Passphrase Sbloccata"); }
+    function exportPack() { alert("Pack JSON generato"); }
 </script>
 </body>
 </html>
