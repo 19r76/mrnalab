@@ -113,68 +113,58 @@
 </div>
 
 <script>
-    var vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // LOGICA DI INIZIALIZZAZIONE COMPATIBILE CON SEGRETO.JS
-    if (typeof Module !== 'undefined') {
-        Module.onRuntimeInitialized = function() {
-            vaultInstance = Module;
-            notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
-            notify.style.color = "var(--green)";
-            console.log("Binary Bridge Active.");
-        };
-    }
-
-    // FUNZIONI ORIGINALI INTEGRATE
-    function validateBlindatura(v) {
-        const icon = document.getElementById("check-icon");
-        const btn = document.getElementById("btn-backup-priv");
-        if(v.length >= 15) { icon.innerText = "[OK]"; icon.style.color = "var(--green)"; btn.disabled = false; }
-        else { icon.innerText = "[ ]"; icon.style.color = "#444"; btn.disabled = true; }
-    }
-
-    function validateRestore(v) {
-        const icon = document.getElementById("check-icon-restore");
-        const btn = document.getElementById("btn-restore-priv");
-        if(v.length >= 15) { icon.innerText = "[OK]"; icon.style.color = "var(--green)"; btn.disabled = false; }
-        else { icon.innerText = "[ ]"; icon.style.color = "#444"; btn.disabled = true; }
-    }
-
-    function togglePanicBox() {
-        const x = document.getElementById("panic-integrated-container");
-        x.style.display = (x.style.display === "none" || x.style.display === "") ? "block" : "none";
-    }
-
-    function genSID() {
-        document.getElementById("alpha").value = "SID-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-    }
-
-    function genStrongPass() {
-        document.getElementById("vp").value = Math.random().toString(36).slice(-16);
-    }
-
-    function instantWipe() {
-        if(confirm("WIPE TOTALE SESSIONE?")) location.reload();
-    }
+    // Con il tuo .js, 'Module' esiste già globalmente.
+    // Dobbiamo solo aspettare che sia "Runtime Ready".
+    Module['onRuntimeInitialized'] = function() {
+        notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
+        notify.style.color = "var(--green)";
+        console.log("Sistema WASM Decriptato e Pronto.");
+    };
 
     function processaCriptazione() {
-        if(!vaultInstance) { alert("WASM NON PRONTO"); return; }
+        const inputTesto = document.getElementById("msg").value;
+        const passphrase = document.getElementById("kp").value;
+
+        // Verifichiamo se la funzione esiste nell'oggetto Module
+        if (typeof Module.cifraMessaggio !== "function") {
+            notify.innerText = "ERRORE: FUNZIONE BINARIA NON TROVATA";
+            notify.style.background = "var(--red)";
+            console.error("La funzione 'cifraMessaggio' non è mappata. Hai usato --bind?");
+            return;
+        }
+
+        if(!inputTesto || !passphrase) {
+            notify.innerText = "ERRORE: DATI MANCANTI";
+            notify.style.background = "var(--red)";
+            return;
+        }
+
         try {
-            const msg = document.getElementById("msg").value;
-            const pass = document.getElementById("vp").value;
-            const res = vaultInstance.cifraMessaggio(msg, pass); // Richiama funzione C++
-            document.getElementById("output-blindato").value = res;
-        } catch(e) { console.error("WASM Error:", e); }
+            // Chiamata diretta a Module
+            const risultato = Module.cifraMessaggio(inputTesto, passphrase);
+            
+            document.getElementById("output-blindato").value = risultato;
+            notify.innerText = "CRIPTAZIONE BINARIA COMPLETATA";
+            notify.style.background = "var(--green)";
+            notify.style.color = "#000";
+
+            setTimeout(() => {
+                notify.style.background = "rgba(0,0,0,0.95)";
+                notify.style.color = "var(--green)";
+            }, 2000);
+        } catch (e) {
+            console.error("Errore critico:", e);
+            notify.innerText = "ERRORE INTERNO DEL CORE";
+        }
     }
 
-    // Altri placeholder per funzioni originali
-    function genRSA() { console.log("Funzione RSA da collegare"); }
-    function exportPrivateKey() { alert("Backup scaricato"); }
-    function exportPublicKey() { alert("Public Key Copiata"); }
-    function sealPass() { alert("Passphrase Sigillata"); }
-    function unsealPass() { alert("Passphrase Sbloccata"); }
-    function exportPack() { alert("Pack JSON generato"); }
+    // Protezione tasti
+    document.onkeydown = function(e) {
+        if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73)) return false;
+    };
 </script>
+
 </body>
 </html>
