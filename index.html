@@ -180,25 +180,27 @@ html
 
     <!-- CONTACT INFO: mr76@tiscali.it -->
 
-    <div style="text-align: center; margin-top: 50px; font-family: Arial, sans-serif;">
-  <input type="password" id="passInput" placeholder="Inserisci Password" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
-  <button onclick="controllaAccesso()" class="btn-entra">ENTRA</button>
-  <p id="errore" style="color: red; display: none;">Password errata!</p>
+    <!-- INTERFACCIA: In primo piano con z-index -->
+<div style="position: relative; z-index: 9999; text-align: center; margin: 50px auto; font-family: sans-serif; background: white; padding: 20px;">
+  <input type="password" id="passInput" placeholder="Password" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px;">
+  <button onclick="controllaAccesso()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">ENTRA</button>
+  <p id="errore" style="color: red; display: none; margin-top: 10px;">Password errata!</p>
 </div>
 
+<!-- LOGICA: Controllo Password -->
 <script>
 function controllaAccesso() {
   const passInserita = document.getElementById('passInput').value;
   const passCorretta = "Augmentin875+125";
 
   if (passInserita === passCorretta) {
-    // Sostituisci 'app.html' con il nome del tuo secondo file
     window.location.href = "app.html"; 
   } else {
     document.getElementById('errore').style.display = 'block';
   }
 }
 </script>
+
 
 </body>
 
