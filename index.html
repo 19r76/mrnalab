@@ -18,6 +18,21 @@ html
     <meta property="og:url" content="https://www.mrnalab.it">
 
     <style>
+.btn-entra {
+  padding: 10px 25px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+.btn-entra:hover {
+  background-color: #0056b3;
+}
+</style>
+
+    <style>
         :root {
             --red-pure: #ff0000;
             --red-glow: rgba(255, 0, 0, 0.6);
@@ -164,6 +179,27 @@ html
     </div>
 
     <!-- CONTACT INFO: mr76@tiscali.it -->
+
+    <div style="text-align: center; margin-top: 50px; font-family: Arial, sans-serif;">
+  <input type="password" id="passInput" placeholder="Inserisci Password" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+  <button onclick="controllaAccesso()" class="btn-entra">ENTRA</button>
+  <p id="errore" style="color: red; display: none;">Password errata!</p>
+</div>
+
+<script>
+function controllaAccesso() {
+  const passInserita = document.getElementById('passInput').value;
+  const passCorretta = "Augmentin875+125";
+
+  if (passInserita === passCorretta) {
+    // Sostituisci 'app.html' con il nome del tuo secondo file
+    window.location.href = "app.html"; 
+  } else {
+    document.getElementById('errore').style.display = 'block';
+  }
+}
+</script>
+
 </body>
 
 </html>
