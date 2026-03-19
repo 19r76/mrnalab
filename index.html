@@ -225,17 +225,27 @@
     </div>
 
     <script>
-    function controllaAccesso() {
-      const passInserita = document.getElementById('passInput').value;
-      const passCorretta = "Augmentin875+125";
+async function verificaAccesso() {
+    const passwordInserita = document.getElementById("password Field").value;
+    
+    // Calcola l'hash SHA-256 della password inserita dall'utente
+    const msgUint8 = new TextEncoder().encode(passwordInserita);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-      if (passInserita === passCorretta) {
-        window.location.href = "app_protetta.html"; 
-      } else {
-        document.getElementById('errore').style.display = 'block';
-      }
+    // IL TUO HASH (Sostituisci questo codice con quello generato al punto 1)
+    const hashCorretto = "c6257278c6d3a897947f3803bec75595c8bd9c5d1c10c8e58573bac678af4817";
+
+    if (hashHex === hashCorretto) {
+        alert("Accesso consentito!");
+        window.location.href = "pagina_segreta.html"; 
+    } else {
+        alert("Password errata!");
     }
-    </script>
+}
+</script>
+
 
 </body>
 </html>
