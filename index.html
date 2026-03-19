@@ -225,26 +225,27 @@
     </div>
 
     <script>
-async function verificaAccesso() {
-    const passwordInserita = document.getElementById("password Field").value;
-    
-    // Calcola l'hash SHA-256 della password inserita dall'utente
-    const msgUint8 = new TextEncoder().encode(passwordInserita);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        async function controllaPassword() {
+            const input = document.getElementById('passwordInput').value;
+            
+            // Genera l'impronta (Hash) della password inserita
+            const msgBuffer = new TextEncoder().encode(input);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-    // IL TUO HASH (Sostituisci questo codice con quello generato al punto 1)
-    const hashCorretto = "c6257278c6d3a897947f3803bec75595c8bd9c5d1c10c8e58573bac678af4817";
+            // Questo è l'hash di "Ranitidina2026"
+            const hashCorretto = "649646be753d0859998e33f3829038ba98600868f9a2ba898539296683839213";
 
-    if (hashHex === hashCorretto) {
-        alert("Accesso consentito!");
-        window.location.href = "pagina_segreta.html"; 
-    } else {
-        alert("Password errata!");
-    }
-}
-</script>
+            if (hashHex === hashCorretto) {
+                alert("Accesso eseguito!");
+                // Qui metti il link alla pagina protetta
+                window.location.href = "tuapagina_segreta.html";
+            } else {
+                alert("Password errata. Riprova.");
+            }
+        }
+    </script>
 
 
 </body>
