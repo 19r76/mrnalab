@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>mRNALab | BlackBox v22.2 FINAL-GUARD</title>
-    <!-- 1. CARICAMENTO DEL MOTORE BINARIO (JS generato da Emscripten) -->
     <script src="segreto.js"></script>
-    
     <style>
         :root { --red: #ff0000; --green: #00ff41; --yellow: #ffcf00; --blue: #00e5ff; --bg: #050505; --font: 'Courier New', monospace; }
         body { background: var(--bg); color: #fff; font-family: var(--font); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; user-select: none; }
         #notify-banner { position: fixed; top: 0; left: 0; width: 100%; padding:10px; text-align: center; z-index: 9999; font-size: 0.7rem; border-bottom: 1px solid #333; background: rgba(0,0,0,0.95); transition: 0.3s; height: 20px; }
-        #ui-wrapper { display: flex; gap: 15px; max-width: 1400px; padding: 20px; flex-wrap: wrap; justify-content: center; }
+        #ui-wrapper { display: flex; gap: 15px; max-width: 1400px; padding: 20px; flex-wrap: wrap; justify-content: center; margin-top: 40px; }
         .panel { background: rgba(10,10,10,0.98); border: 1px solid #222; padding: 20px; }
         .main-panel { width: 380px; border-top: 3px solid #444; }
         .side-vault { width: 320px; border: 1px solid var(--red); border-top: 3px solid var(--red); }
@@ -20,16 +18,20 @@
         textarea, .key-input { background: #000; border: 1px solid #222; color: var(--green); width: 100%; outline: none; font-family: var(--font); box-sizing: border-box; resize: none; font-size: 0.55rem; padding: 8px; }
         .key-slot { background: #080808; border: 1px solid #1a1a1a; padding: 8px; margin-bottom: 8px; position: relative; }
         .key-label { font-size: 0.5rem; color: #555; text-transform: uppercase; display: block; margin-bottom: 4px; }
+        .blindatura-box { border: 1px groove #444; padding: 10px; margin: 5px 0; display: flex; align-items: center; justify-content: space-between; font-size: 0.55rem; color: #888; }
         button { width: 100%; background: transparent; border: 1px solid #444; color: #888; padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 0.5rem; font-weight: 900; margin-top: 5px; transition: 0.2s; }
-        button:hover { background: #fff; color: #000; }
+        button:hover:not(:disabled) { background: #fff; color: #000; }
+        button:disabled { opacity: 0.2; cursor: not-allowed; }
         .btn-blue { border-color: var(--blue) !important; color: var(--blue) !important; }
         .btn-red { border-color: var(--red) !important; color: var(--red) !important; }
+        .btn-green { border-color: var(--green) !important; color: var(--green) !important; }
         .btn-yellow { border-color: var(--yellow) !important; color: var(--yellow) !important; }
+        #panic-integrated-container { display: none; margin-top: 10px; border: 1px solid var(--red); padding: 10px; }
     </style>
 </head>
 <body oncontextmenu="return false;">
 
-<div id="notify-banner">INIZIALIZZAZIONE...</div>
+<div id="notify-banner">SISTEMA INIZIALIZZAZIONE...</div>
 
 <div id="ui-wrapper">
     <!-- PANEL 1: RSA -->
@@ -37,81 +39,91 @@
         <h2>1. RSA Key & Identity</h2>
         <button onclick="genRSA()" class="btn-blue">A. Genera Mie Chiavi</button>
         <div class="key-slot" style="margin-top:10px;">
-            <span class="key-label">Passphrase Blindatura</span>
-            <input type="password" id="kp" class="key-input" placeholder="Min. 15 char...">
-            <button onclick="exportPrivateKey()" class="btn-red">Backup PrivKey</button>
+            <span class="key-label">Passphrase Blindatura Backup</span>
+            <input type="password" id="kp" class="key-input" placeholder="Min. 15 char..." oninput="validateBlindatura(this.value)">
+            <div class="blindatura-box"><span>BLINDATURA BACKUP</span><span id="check-icon">[ ]</span></div>
+            <button id="btn-backup-priv" onclick="exportPrivateKey()" class="btn-red" disabled>Backup PrivKey</button>
+        </div>
+        <div class="key-slot" style="margin-top:10px; border: 1px solid var(--green);">
+            <span class="key-label">Passphrase Sblocco Restore</span>
+            <input type="password" id="kp-restore" class="key-input" placeholder="Min. 15 char..." oninput="validateRestore(this.value)">
+            <div class="blindatura-box"><span>BLINDATURA RESTORE</span><span id="check-icon-restore">[ ]</span></div>
+            <button id="btn-restore-priv" onclick="document.getElementById('priv-file-in').click()" class="btn-green" disabled>Esegui Restore</button>
+            <input type="file" id="priv-file-in" style="display:none" onchange="importPrivateKey(this)">
         </div>
         <button onclick="exportPublicKey()" class="btn-blue">Export PubKey</button>
+        <div class="key-slot" style="margin-top:10px;">
+            <button onclick="document.getElementById('pub-file-in').click()" class="btn-blue">Import Dest. PubKey</button>
+            <input type="file" id="pub-file-in" style="display:none" onchange="importPublicKey(this)">
+            <textarea id="pub-active" style="height:35px; margin-top:5px;" placeholder="Lucchetto attivo..."></textarea>
+        </div>
+        <button onclick="sealPass()" class="btn-blue">B. Sigilla Passphrase</button>
         <textarea id="sealed-pass" style="height:35px; margin-top:5px;" class="key-input" placeholder="Token RSA..."></textarea>
+        <button onclick="unsealPass()" class="btn-green">C. Dissigilla Passphrase</button>
     </div>
 
     <!-- PANEL 2: MAIN -->
     <div class="panel main-panel">
         <h1>mRNALab.it</h1>
         <textarea id="msg" style="height:150px;" placeholder="Messaggio..."></textarea>
-        <div class="key-slot">
-            <span class="key-label">Session ID (SID)</span>
-            <input type="text" id="alpha" class="key-input" readonly>
-        </div>
+        <div class="key-slot"><span class="key-label">Session ID (SID)</span><input type="text" id="alpha" class="key-input" readonly></div>
         <button onclick="genSID()">Genera SID</button>
-        <button onclick="location.reload()" class="btn-red" style="margin-top: 25px;">☣️ WIPE SESSION</button>
+        <button onclick="exportPack()" class="btn-yellow">Export .JSON Pack</button>
+        <button onclick="document.getElementById('json-file-in').click()" class="btn-yellow">Import .JSON Pack</button>
+        <input type="file" id="json-file-in" style="display:none" onchange="handleFile(this)">
+        <button onclick="location.reload()" class="btn-red" style="margin-top: 25px; font-size: 1.2rem;">☣️ WIPE</button>
+        <button onclick="togglePanicBox()" class="btn-red" style="margin-top: 15px; border-style: dashed;">OFFUSCAMENTO</button>
+        <div id="panic-integrated-container">
+            <input type="password" id="panic-input" class="key-input" placeholder="Panic Password...">
+        </div>
     </div>
 
     <!-- PANEL 3: VAULT -->
     <div class="panel side-vault">
         <h2>2. Data Vault (AES)</h2>
         <div class="key-slot">
-            <span class="key-label">Master Passphrase</span>
+            <span class="key-label">Master Passphrase Messaggio</span>
             <input type="password" id="vp" class="key-input" placeholder="Password...">
             <button onclick="genStrongPass()" class="btn-yellow" style="margin-top:8px;">GENERA PASS</button>
         </div>
-        <button onclick="processaCriptazione()" class="btn-yellow">CRIPTA MESSAGGIO</button>
-        <textarea id="output-blindato" style="height:80px; margin-top:10px;" class="key-input" placeholder="Risultato..."></textarea>
+        <button onclick="processaCriptazione()" class="btn-green">AVVIA CRIPTAZIONE BINARIA</button>
+        <textarea id="output-blindato" style="height:150px; margin-top:10px;" class="key-input" placeholder="Output..."></textarea>
     </div>
 </div>
 
 <script>
-    // 2. LOGICA DI AGGANCIO AL FILE .WASM
     var vaultInstance = null;
-    const notify = document.getElementById("notify-banner");
+    var notify = document.getElementById("notify-banner");
 
-    // Questa funzione viene chiamata automaticamente dal tuo segreto.js
+    // Collegamento WebAssembly
     Module.onRuntimeInitialized = function() {
         vaultInstance = Module;
         notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
         notify.style.color = "var(--green)";
-        console.log("Modulo WASM caricato.");
     };
 
-    // 3. LE TUE FUNZIONI (Aggiungile qui per far funzionare i tasti)
-    function genSID() {
-        const sid = Math.random().toString(36).substring(2, 15).toUpperCase();
-        document.getElementById("alpha").value = "SID-" + sid;
+    // Validazione tasti
+    function validateBlindatura(v) { document.getElementById("btn-backup-priv").disabled = v.length < 15; }
+    function validateRestore(v) { document.getElementById("btn-restore-priv").disabled = v.length < 15; }
+    function togglePanicBox() { 
+        var box = document.getElementById("panic-integrated-container");
+        box.style.display = (box.style.display === "none" || box.style.display === "") ? "block" : "none";
     }
 
+    // Placeholder Funzioni Logiche (Inserisci qui il tuo codice originale se lo hai)
+    function genSID() { document.getElementById("alpha").value = "SID-" + Math.random().toString(36).substr(2, 9).toUpperCase(); }
+    function genStrongPass() { document.getElementById("vp").value = Math.random().toString(36).slice(-16); }
     function processaCriptazione() {
-        if (!vaultInstance) { alert("Modulo non pronto!"); return; }
-        const msg = document.getElementById("msg").value;
-        const key = document.getElementById("vp").value;
-        
+        if(!vaultInstance) return;
         try {
-            // Assicurati che 'cifraMessaggio' sia il nome esatto usato nel C++
-            const res = vaultInstance.cifraMessaggio(msg, key);
+            const res = vaultInstance.cifraMessaggio(document.getElementById("msg").value, document.getElementById("vp").value);
             document.getElementById("output-blindato").value = res;
-        } catch(e) {
-            alert("Errore durante la criptazione WASM.");
-        }
+        } catch(e) { console.error(e); }
     }
 
-    // Aggiungi qui le altre funzioni mancanti (genRSA, exportPublicKey, ecc.)
-    function genRSA() { console.log("Funzione genRSA da implementare"); }
-    function exportPublicKey() { console.log("Funzione exportPublicKey da implementare"); }
-    function exportPrivateKey() { console.log("Funzione exportPrivateKey da implementare"); }
-    function genStrongPass() { 
-        document.getElementById("vp").value = Math.random().toString(36).slice(-12); 
-    }
-
+    // Altre funzioni da completare con la tua logica originale
+    function genRSA() { console.log("GenRSA..."); }
+    function exportPrivateKey() { console.log("Export..."); }
 </script>
-
 </body>
 </html>
