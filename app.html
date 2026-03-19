@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <title>mRNALab | BlackBox v22.2 FINAL-GUARD</title>
-    <!-- CARICAMENTO DEL PONTE BINARIO -->
     <script src="segreto.js"></script>
-    
     <style>
         :root { --red: #ff0000; --green: #00ff41; --yellow: #ffcf00; --blue: #00e5ff; --bg: #050505; --font: 'Courier New', monospace; }
         body { background: var(--bg); color: #fff; font-family: var(--font); display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; margin: 0; user-select: none; }
-        #notify-banner { position: fixed; top: 0; left: 0; width: 100%; padding:10px; text-align: center; z-index: 9999; font-size: 0.7rem; border-bottom: 1px solid #333; background: rgba(0,0,0,0.95); transition: 0.3s; height: 20px; }
-        #ui-wrapper { display: flex; gap: 15px; max-width: 1400px; padding: 20px; flex-wrap: wrap; justify-content: center; }
-        .panel { background: rgba(10,10,10,0.98); border: 1px solid #222; padding: 20px; }
+        #notify-banner { position: fixed; top: 0; left: 0; width: 100%; padding:10px; text-align: center; z-index: 9999; font-size: 0.7rem; border-bottom: 1px solid #333; background: rgba(0,0,0,0.95); transition: 0.3s; height: 20px; color: var(--yellow); }
+        #ui-wrapper { display: flex; gap: 15px; max-width: 1400px; padding: 20px; flex-wrap: wrap; justify-content: center; margin-top: 40px; }
+        .panel { background: rgba(10,10,10,0.98); border: 1px solid #222; padding: 20px; box-sizing: border-box; }
         .main-panel { width: 380px; border-top: 3px solid #444; }
-        .side-vault { width: 320px; border: 1px solid var(--red); border-top: 3px solid var(--red); }
         .rsa-panel { width: 320px; border: 1px solid var(--blue); border-top: 3px solid var(--blue); }
         h1 { font-size: 0.9rem; letter-spacing: 3px; color: var(--red); text-align: center; margin-bottom: 15px; }
         h2 { font-size: 0.6rem; color: var(--blue); text-transform: uppercase; margin-bottom: 10px; text-align: center; }
@@ -24,7 +21,6 @@
         button:hover { background: #fff; color: #000; }
         .btn-blue { border-color: var(--blue) !important; color: var(--blue) !important; }
         .btn-red { border-color: var(--red) !important; color: var(--red) !important; }
-        .btn-green { border-color: var(--green) !important; color: var(--green) !important; }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -32,6 +28,7 @@
 <div id="notify-banner">SISTEMA INIZIALIZZAZIONE...</div>
 
 <div id="ui-wrapper">
+    <!-- PANNELLO RSA -->
     <div class="panel rsa-panel">
         <h2>1. RSA Key & Identity</h2>
         <div class="key-slot">
@@ -39,12 +36,13 @@
             <input type="password" id="kp" class="key-input" placeholder="Min. 15 char...">
             <button class="btn-blue" onclick="processaCriptazione()">AVVIA CRIPTAZIONE BINARIA</button>
         </div>
-        <textarea id="output-blindato" style="height:80px; margin-top:10px;" class="key-input" placeholder="Risultato dal modulo WASM..."></textarea>
+        <textarea id="output-blindato" style="height:100px; margin-top:10px;" class="key-input" placeholder="Risultato dal modulo WASM..."></textarea>
     </div>
 
+    <!-- PANNELLO CENTRALE -->
     <div class="panel main-panel">
         <h1>mRNALab.it</h1>
-        <textarea id="msg" style="height:150px;" placeholder="Inserisci messaggio segreto..."></textarea>
+        <textarea id="msg" style="height:180px;" placeholder="Inserisci messaggio segreto..."></textarea>
         <button onclick="location.reload()" class="btn-red">WIPE SESSION</button>
     </div>
 </div>
@@ -53,24 +51,14 @@
     let vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // Inizializzazione modulo
+    // Inizializzazione corretta per il tuo segreto.js
     if (typeof Module !== 'undefined') {
         Module.onRuntimeInitialized = function() {
             vaultInstance = Module;
-            if (notify) {
-                notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
-                notify.style.color = "var(--green)";
-            }
+            notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
+            notify.style.color = "var(--green)";
         };
     }
-
-    // Timeout errore
-    setTimeout(() => {
-        if (!vaultInstance && notify) {
-            notify.innerText = "ERRORE: VERIFICARE FILE .WASM";
-            notify.style.color = "var(--red)";
-        }
-    }, 5000);
 
     function processaCriptazione() {
         const inputTesto = document.getElementById("msg").value;
@@ -81,29 +69,15 @@
             return;
         }
 
-        if(!inputTesto || !passphrase) {
-            notify.innerText = "ERRORE: INSERIRE MESSAGGIO E PASSPHRASE";
-            return;
-        }
-
         try {
-            // Assicurati che la funzione nel C++ si chiami esattamente cifraMessaggio
+            // Chiama la funzione C++ esportata
             const risultato = vaultInstance.cifraMessaggio(inputTesto, passphrase);
             document.getElementById("output-blindato").value = risultato;
-            notify.innerText = "CRIPTAZIONE BINARIA COMPLETATA";
-            notify.style.color = "var(--green)";
+            notify.innerText = "CRIPTAZIONE COMPLETATA";
         } catch (e) {
-            console.error("Errore WASM:", e);
-            notify.innerText = "ERRORE: FIRMA BINARIA NON VALIDA";
-            notify.style.color = "var(--red)";
+            notify.innerText = "ERRORE: FIRMA NON VALIDA";
         }
     }
-
-    // Blocco tasti console
-    document.onkeydown = function(e) {
-        if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.keyCode == 85)) return false;
-    };
 </script>
-
 </body>
 </html>
