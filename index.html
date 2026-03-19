@@ -1,4 +1,3 @@
-html
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -18,25 +17,11 @@ html
     <meta property="og:url" content="https://www.mrnalab.it">
 
     <style>
-.btn-entra {
-  padding: 10px 25px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-}
-.btn-entra:hover {
-  background-color: #0056b3;
-}
-</style>
-
-    <style>
         :root {
             --red-pure: #ff0000;
             --red-glow: rgba(255, 0, 0, 0.6);
             --silver-bright: #ffffff;
+            --blue-cyber: #007bff;
         }  
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
@@ -44,6 +29,62 @@ html
             overflow: hidden; display: flex; justify-content: center; align-items: center; 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
             -webkit-font-smoothing: antialiased;
+        }
+
+        /* BOX ACCESSO POSIZIONATO IN BASSO */
+        .gatekeeper-ui {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10000;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border: 1px solid #333;
+            border-top: 2px solid var(--blue-cyber);
+            width: 280px;
+        }
+
+        .pass-input {
+            padding: 10px;
+            background: #000;
+            border: 1px solid #444;
+            color: #fff;
+            font-family: monospace;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            outline: none;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .btn-entra {
+            width: 100%;
+            padding: 10px;
+            background-color: var(--blue-cyber);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 12px;
+            transition: 0.3s;
+        }
+
+        .btn-entra:hover {
+            background-color: #0056b3;
+            box-shadow: 0 0 15px rgba(0, 123, 255, 0.4);
+        }
+
+        #errore {
+            color: var(--red-pure);
+            font-size: 10px;
+            margin-top: 8px;
+            display: none;
+            text-transform: uppercase;
         }
 
         .content {
@@ -116,9 +157,9 @@ html
             to { transform: rotateY(360deg) rotateX(12deg); }
         }
 
-        /* Configurazione nodi (mRNA sequence) */
         .node:nth-child(n) { transform: translateY(calc(var(--y) * 1px)) rotateY(calc(var(--r) * 1deg)) translateX(280px); }
         
+        /* Configurazione nodi originale mantenuta */
         .node:nth-child(1)  { --y: -300; --r: 0; }   .node:nth-child(2)  { --y: -290; --r: 18; }
         .node:nth-child(3)  { --y: -280; --r: 36; }  .node:nth-child(4)  { --y: -270; --r: 54; }
         .node:nth-child(5)  { --y: -260; --r: 72; }  .node:nth-child(6)  { --y: -250; --r: 90; }
@@ -153,6 +194,18 @@ html
 </head>
 <body>
 
+    <!-- BOX ACCESSO -->
+    <div class="gatekeeper-ui">
+        <input type="password" id="passInput" class="pass-input" placeholder="SECURITY KEY">
+        <button onclick="controllaAccesso()" class="btn-entra">IDENTIFY</button>
+        <p id="errore">Access Denied</p>
+    </div>
+
+    <div class="content">
+        <h1><span class="brand">mRNAlab</span>.it</h1>
+        <span class="tagline">The Code of the Future</span>
+    </div>
+
     <div class="rna-viewport">
         <div class="helix">
             <!-- Sequenza mRNA di 60 nodi -->
@@ -171,40 +224,18 @@ html
         </div>
     </div>
 
-    <div class="content">
-        <h1 aria-label="mRNAlab.it">
-            <span>www.m</span><span class="brand">RNA</span><span>lab.it</span>
-        </h1>
-        <div class="tagline">THE CODE OF THE FUTURE</div>
-    </div>
+    <script>
+    function controllaAccesso() {
+      const passInserita = document.getElementById('passInput').value;
+      const passCorretta = "secure_key_placeholder";
 
-    <!-- CONTACT INFO: mr76@tiscali.it -->
-
-    <!-- INTERFACCIA: In primo piano con z-index -->
-<div style="position: relative; z-index: 9999; text-align: center; margin: 50px auto; font-family: sans-serif; background: white; padding: 20px;">
-  <input type="password" id="passInput" placeholder="Password" style="padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px;">
-  <button onclick="controllaAccesso()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">ENTRA</button>
-  <p id="errore" style="color: red; display: none; margin-top: 10px;">Password errata!</p>
-</div>
-
-<!-- LOGICA: Controllo Password -->
-<script>
-function controllaAccesso() {
-  const passInserita = document.getElementById('passInput').value;
-  const passCorretta = "Augmentin875+125";
-
-  if (passInserita === passCorretta) {
-    window.location.href = "app.html"; 
-  } else {
-    document.getElementById('errore').style.display = 'block';
-  }
-}
-</script>
-
+      if (passInserita === passCorretta) {
+        window.location.href = "app.html"; 
+      } else {
+        document.getElementById('errore').style.display = 'block';
+      }
+    }
+    </script>
 
 </body>
-
 </html>
-
-
-
