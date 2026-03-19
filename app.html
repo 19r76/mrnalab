@@ -58,22 +58,31 @@
     let vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // Nuovo metodo di inizializzazione compatibile
-    Module.onRuntimeInitialized = function() {
-        vaultInstance = Module; // In Emscripten l'istanza è il Modulo stesso
-        notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
-        notify.style.color = "var(--green)";
-        console.log("WASM caricato con successo!");
-    };
-
-    // Gestione errore se il caricamento fallisce dopo 5 secondi
-    setTimeout(() => {
-        if (!vaultInstance) {
-            notify.innerText = "ERRORE CRITICO: TIMEOUT MODULO";
-            notify.style.color = "red";
+    // Funzione per segnare il modulo come pronto
+    function moduloPronto(instance) {
+        vaultInstance = instance;
+        if(notify) {
+            notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
+            notify.style.color = "#00ff00"; // Verde
         }
-    }, 5000);
+        console.log("Modulo caricato correttamente!");
+    }
+
+    // Prova il metodo 1 (Funzione/Promise)
+    if (typeof Module === 'function') {
+        Module().then(moduloPronto).catch(err => {
+            console.error("Errore caricamento:", err);
+            if(notify) notify.innerText = "ERRORE CRITICO: MODULO NON CARICATO";
+        });
+    } 
+    // Prova il metodo 2 (Oggetto globale)
+    else {
+        Module.onRuntimeInitialized = function() {
+            moduloPronto(Module);
+        };
+    }
 </script>
+
 
         notify.style.color = "var(--red)";
     });
