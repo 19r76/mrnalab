@@ -242,7 +242,7 @@
             const aesKey = await deriveKey(pw, salt);
             const encrypted = await window.crypto.subtle.encrypt({ name: "AES-GCM", iv: iv }, aesKey, exported);
             const blob = new Blob([JSON.stringify({ salt: buf2b64(salt), iv: buf2b64(iv), data: buf2b64(encrypted) })], { type: "application/json" });
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "mRNALab_PrivKey.bak"; a.click();
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = "MRNALAB_PrivKey.bak"; a.click();
             _not("BACKUP SCARICATO", "success");
         } catch (e) { _not("ERRORE", "error"); }
     }
@@ -321,7 +321,7 @@
     async function exportPublicKey() {
         if (!myKeyPair.publicKey) return _not("GENERA CHIAVI", "error");
         const exported = await window.crypto.subtle.exportKey("spki", myKeyPair.publicKey);
-        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf2b64(exported)], { type: "text/plain" })); a.download = "Gold_PubKey.mrnalab"; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([buf2b64(exported)], { type: "text/plain" })); a.download = "Gold_PubKey.MRNALAB"; a.click();
     }
 
     async function importPublicKey(input) {
