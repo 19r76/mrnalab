@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>mRNALab | BlackBox v22.2 FINAL-GUARD</title>
-    <!-- CARICAMENTO DEL PONTE BINARIO (BLINDATURA) -->
+    <!-- CARICAMENTO DEL PONTE BINARIO -->
     <script src="segreto.js"></script>
-<!-- Solo DOPO inserisci il pezzo con vaultInstance -->
-
     
     <style>
         :root { --red: #ff0000; --green: #00ff41; --yellow: #ffcf00; --blue: #00e5ff; --bg: #050505; --font: 'Courier New', monospace; }
@@ -22,7 +20,6 @@
         textarea, .key-input { background: #000; border: 1px solid #222; color: var(--green); width: 100%; outline: none; font-family: var(--font); box-sizing: border-box; resize: none; font-size: 0.55rem; padding: 8px; }
         .key-slot { background: #080808; border: 1px solid #1a1a1a; padding: 8px; margin-bottom: 8px; position: relative; }
         .key-label { font-size: 0.5rem; color: #555; text-transform: uppercase; display: block; margin-bottom: 4px; }
-        .blindatura-box { border: 1px groove #444; padding: 10px; margin: 5px 0; display: flex; align-items: center; justify-content: space-between; font-size: 0.55rem; color: #888; }
         button { width: 100%; background: transparent; border: 1px solid #444; color: #888; padding: 8px; cursor: pointer; text-transform: uppercase; font-size: 0.5rem; font-weight: 900; margin-top: 5px; transition: 0.2s; }
         button:hover { background: #fff; color: #000; }
         .btn-blue { border-color: var(--blue) !important; color: var(--blue) !important; }
@@ -35,7 +32,6 @@
 <div id="notify-banner">SISTEMA INIZIALIZZAZIONE...</div>
 
 <div id="ui-wrapper">
-    <!-- PANEL 1: IDENTITÀ -->
     <div class="panel rsa-panel">
         <h2>1. RSA Key & Identity</h2>
         <div class="key-slot">
@@ -46,7 +42,6 @@
         <textarea id="output-blindato" style="height:80px; margin-top:10px;" class="key-input" placeholder="Risultato dal modulo WASM..."></textarea>
     </div>
 
-    <!-- PANEL 2: MAIN -->
     <div class="panel main-panel">
         <h1>mRNALab.it</h1>
         <textarea id="msg" style="height:150px;" placeholder="Inserisci messaggio segreto..."></textarea>
@@ -58,31 +53,24 @@
     let vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // Dato che il tuo JS definisce 'var Module', usiamo il callback di sistema
-    Module.onRuntimeInitialized = function() {
-        vaultInstance = Module;
-        if (notify) {
-            notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
-            notify.style.color = "var(--green)";
-        }
-        console.log("WebAssembly caricato con successo!");
-        
-        // Se il tuo programma ha bisogno di una funzione di avvio, chiamala qui
-        // esempio: Module._main(); 
-    };
+    // Inizializzazione modulo
+    if (typeof Module !== 'undefined') {
+        Module.onRuntimeInitialized = function() {
+            vaultInstance = Module;
+            if (notify) {
+                notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
+                notify.style.color = "var(--green)";
+            }
+        };
+    }
 
-    // Controllo di sicurezza se non carica
+    // Timeout errore
     setTimeout(() => {
         if (!vaultInstance && notify) {
             notify.innerText = "ERRORE: VERIFICARE FILE .WASM";
             notify.style.color = "var(--red)";
         }
     }, 5000);
-</script>
-
-
-        notify.style.color = "var(--red)";
-    });
 
     function processaCriptazione() {
         const inputTesto = document.getElementById("msg").value;
@@ -95,33 +83,23 @@
 
         if(!inputTesto || !passphrase) {
             notify.innerText = "ERRORE: INSERIRE MESSAGGIO E PASSPHRASE";
-            notify.style.background = "var(--red)";
             return;
         }
 
         try {
-            // Chiamata alla funzione C++ passandogli sia il messaggio che la chiave
-            // Assicurati che nel .cpp la funzione accetti due stringhe: cifraMessaggio(msg, key)
+            // Assicurati che la funzione nel C++ si chiami esattamente cifraMessaggio
             const risultato = vaultInstance.cifraMessaggio(inputTesto, passphrase);
-            
             document.getElementById("output-blindato").value = risultato;
             notify.innerText = "CRIPTAZIONE BINARIA COMPLETATA";
-            notify.style.background = "var(--green)";
-            notify.style.color = "#000";
-
-            setTimeout(() => {
-                notify.style.background = "rgba(0,0,0,0.95)";
-                notify.style.color = "var(--green)";
-            }, 2000);
-
+            notify.style.color = "var(--green)";
         } catch (e) {
             console.error("Errore WASM:", e);
             notify.innerText = "ERRORE: FIRMA BINARIA NON VALIDA";
-            notify.style.background = "var(--red)";
+            notify.style.color = "var(--red)";
         }
     }
 
-    // Protezione console
+    // Blocco tasti console
     document.onkeydown = function(e) {
         if(e.keyCode == 123 || (e.ctrlKey && e.shiftKey && e.keyCode == 73) || (e.ctrlKey && e.keyCode == 85)) return false;
     };
