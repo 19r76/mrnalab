@@ -56,13 +56,23 @@
     let vaultInstance = null;
     const notify = document.getElementById("notify-banner");
 
-    // Inizializzazione modulo WebAssembly
-    Module().then(function(instance) {
-        vaultInstance = instance;
+    // Nuovo metodo di inizializzazione compatibile
+    Module.onRuntimeInitialized = function() {
+        vaultInstance = Module; // In Emscripten l'istanza è il Modulo stesso
         notify.innerText = "RSA-VAULT VERIFIED | mRNALab v22.2";
         notify.style.color = "var(--green)";
-    }).catch(err => {
-        notify.innerText = "ERRORE CRITICO: MODULO NON CARICATO";
+        console.log("WASM caricato con successo!");
+    };
+
+    // Gestione errore se il caricamento fallisce dopo 5 secondi
+    setTimeout(() => {
+        if (!vaultInstance) {
+            notify.innerText = "ERRORE CRITICO: TIMEOUT MODULO";
+            notify.style.color = "red";
+        }
+    }, 5000);
+</script>
+
         notify.style.color = "var(--red)";
     });
 
