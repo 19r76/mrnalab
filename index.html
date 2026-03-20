@@ -249,28 +249,30 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-           async function controllaAccesso() {
+    async function controllaAccesso() {
         const pField = document.getElementById('passField');
         const p = pField.value;
+        if(!p) return; // Evita invii a vuoto
+
         const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
         if (hashInserito === HASH_SALVATO) {
             try {
-                // 1. Decodifica il software in RAM
+                // 1. Decodifica istantanea
                 const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
                 
-                // 2. Creazione oggetto virtuale
+                // 2. Creazione "File Virtuale" in RAM
                 const blob = new Blob([softwareHTML], { type: 'text/html' });
                 const blobUrl = URL.createObjectURL(blob);
                 
-                // 3. Swap immediato della pagina
+                // 3. Sostituzione atomica della pagina
                 window.location.replace(blobUrl);
 
-                // 4. Pulizia automatica
+                // 4. Pulizia automatica della memoria
                 setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 
             } catch (e) {
-                alert("ERRORE: Stringa corrotta.");
+                alert("ERRORE: Codice sorgente corrotto.");
                 console.error(e);
             }
         } else {
@@ -279,9 +281,12 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
         }
     }
 
-    // Listener per il tasto Invio (comodità utente)
-    document.getElementById('passField').addEventListener('keypress', (e) => { 
-        if(e.key === 'Enter') controllaAccesso(); 
+    // LISTENER UNICO: Impedisce il ricaricamento della pagina (causa del doppio invio)
+    document.getElementById('passField').addEventListener('keydown', function(e) { 
+        if (e.key === 'Enter') {
+            e.preventDefault(); // BLOCCA il refresh del browser
+            controllaAccesso(); 
+        }
     });
 
     // Opzionale: Funzione per generare nuovi Hash (se ti serve in fase di test)
