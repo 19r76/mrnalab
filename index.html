@@ -250,41 +250,24 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
 
     async function controllaAccesso() {
     const pField = document.getElementById('passField');
-    const p = pField.value;
+    const hashInserito = await calcolaHash(pField.value, SALT_CONFIGURATO);
 
-    // 1. Calcola l'hash della password inserita
-    const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
-
-    // 2. Verifica se l'hash coincide
     if (hashInserito === HASH_SALVATO) {
-        // Messaggio di test: se vedi questo, la password è GIUSTA
-        alert("PASSWORD CORRETTA! Avvio decodifica del software...");
-
         try {
-            // 3. Decodifica la stringa Base64
+            // Decodifica il codice
             const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
             
-            // Crea il file virtuale
-            const blob = new Blob([softwareHTML], { type: 'text/html' });
-            const blobURL = URL.createObjectURL(blob);
+            // CANCELLA TUTTA LA VETRINA E INSERISCE IL SOFTWARE
+            document.open();
+            document.write(softwareHTML);
+            document.close();
             
-            // Apre il software
-            const nuovaTab = window.open(blobURL, '_blank');
-            
-            if (!nuovaTab) {
-                // Se vedi questo, il browser sta ancora bloccando l'apertura
-                alert("ATTENZIONE: Il browser ha bloccato l'apertura. Controlla la X ROSSA in alto a destra nella barra degli indirizzi!");
-            } else {
-                pField.value = ""; 
-            }
         } catch (e) {
-            // Se vedi questo, la stringa BLACKBOX_ENCODED (riga 235) è copiata male
-            alert("ERRORE CRITICO: La stringa del software è corrotta o incompleta. Ricontrolla il punto 2 del codice.");
+            alert("ERRORE NELLA STRINGA: Il codice Base64 è corrotto o incompleto.");
             console.error(e);
         }
     } else {
-        // Se vedi questo, la password che scrivi non è quella giusta
-        alert("PASSWORD ERRATA! Accesso negato.");
+        alert("PASSWORD ERRATA!");
     }
 }
 
