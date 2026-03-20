@@ -225,41 +225,51 @@
     </div>
 
     <script>
-    // Funzione per generare l'hash SHA-256 (necessaria per leggere il tuo codice)
-    async function generaSHA256(stringa) {
-        const msgUint8 = new TextEncoder().encode(stringa);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    // --- 1. CONFIGURAZIONE ---
+    // Incolla qui l'hash generato dallo strumento in basso
+    const HASH_SALVATO = "6fcad768f2293eb746c555ac43c0f5aeb3e94a4666a495f5d70c7da2aaa92de0"; 
+    // Inserisci qui lo STESSO Salt che hai usato nel generatore
+    const SALT_CONFIGURATO = "1R97@2b2bF79c0524"; 
+
+    // --- 2. FUNZIONE DI CALCOLO UNIFICATA ---
+    async function calcolaHash(password, salt) {
+        // Unione e Base64 (gestisce caratteri speciali)
+        const stringa = btoa(unescape(encodeURIComponent(password + salt)));
+        // Calcolo SHA-256
+        const msgBuffer = new TextEncoder().encode(stringa);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        // Converti in Hex
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
+    // --- 3. LOGICA DI LOGIN ---
     async function controllaAccesso() {
-        const inputField = document.getElementById('passField');
-        const messaggio = document.getElementById('errore');
-        
-        // Trasformiamo quello che scrivi in SHA-256
-        const hashInserito = await generaSHA256(inputField.value.trim());
+        const p = document.getElementById('passField').value;
+        const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
-        // IL TUO CODICE SEGRETO
-        const hashCorretto = "05048799738d2059d9e266477f328e8c7a3d8466f83c3cdc88ed3a172db8a168"; 
-
-        if (hashInserito === hashCorretto) {
-            window.location.href = "app_protetta.html"; 
+        if (hashInserito === HASH_SALVATO) {
+            window.location.href = "app_protetta.html";
         } else {
-            messaggio.style.display = 'block';
-            messaggio.textContent = "ACCESS DENIED";
-            inputField.value = "";
-            inputField.focus();
+            const err = document.getElementById('errore');
+            err.style.display = 'block';
+            setTimeout(() => err.style.display = 'none', 3000);
+        }
+    }
+
+    // --- 4. FUNZIONE PER IL GENERATORE ---
+    async function aggiornaHash() {
+        const p = document.getElementById('pGen').value;
+        const s = document.getElementById('sGen').value;
+        if(p) {
+            const res = await calcolaHash(p, s);
+            document.querySelector('#hashResult span').innerText = res;
         }
     }
 
     // Invio con tasto Enter
-    document.getElementById('passField').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            controllaAccesso();
-        }
-    });
+    document.getElementById('passField').onkeypress = (e) => { if(e.key === 'Enter') controllaAccesso(); };
 </script>
+
 
 </body>
 </html>
