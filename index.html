@@ -502,7 +502,7 @@
         const sid = document.getElementById('alpha').value;
         if (!vaultRaw) return _not("NULLA DA ESPORTARE", "error");
         const blob = new Blob([JSON.stringify({ sid, vault: JSON.parse(vaultRaw), rsa_token: document.getElementById('sealed-pass').value }, null, 2)], { type: "application/json" });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `BBX_${sid}.json`; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = \`BBX_\${sid}.json\`; a.click();
     }
 
     function handleFile(input) {
