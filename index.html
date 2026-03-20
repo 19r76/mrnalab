@@ -244,79 +244,54 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
 
     // --- 3. LOGICA DI SBLOCCO IN RAM (VISUALIZZAZIONE IMMEDIATA) ---
 
+<!-- INIZIO SOSTITUZIONE DALLA FINE DEL TUO DIV -->
+
 <script>
-async function calcolaHash(password, salt) {
-    const stringa = btoa(unescape(encodeURIComponent(password + salt)));
-    const msgBuffer = new TextEncoder().encode(stringa);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
+    // 1. MOTORE DI CALCOLO (Indispensabile)
+    async function calcolaHash(password, salt) {
+        const stringa = btoa(unescape(encodeURIComponent(password + salt)));
+        const msgBuffer = new TextEncoder().encode(stringa);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
-async function controllaAccesso() {
-    const pField = document.getElementById('passField');
-    const btn = document.getElementById('btnSblocca');
-    const p = pField.value;
-    if(!p) return;
+    // 2. LOGICA DI SBLOCCO (RAM-ONLY)
+    async function controllaAccesso() {
+        const pField = document.getElementById('passField');
+        if(!pField) return;
+        const p = pField.value;
 
-    // Feedback visivo immediato
-    btn.innerText = "DECRIPTAZIONE IN CORSO...";
-    btn.disabled = true;
+        const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
-    const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
-
-    if (hashInserito === HASH_SALVATO) {
-        try {
-            // 1. DECODIFICA IN RAM
-            const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
-            
-            // 2. DISTRUZIONE TOTALE DEL LOGIN (Tabula Rasa)
-            document.open();
-            
-            // 3. INIEZIONE ATOMICA DEL SOFTWARE
-            document.write(softwareHTML);
-            
-            // 4. CHIUSURA FLUSSO (Attiva il rendering)
-            document.close();
-
-            // NOTA: Se document.write venisse bloccato da policy restrittive, 
-            // il browser passerebbe automaticamente al metodo di riserva:
-            if (document.body.innerHTML === "") {
-                document.documentElement.innerHTML = softwareHTML;
-                riattivaScript(document.documentElement);
+        if (hashInserito === HASH_SALVATO) {
+            try {
+                // Decodifica in RAM
+                const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
+                
+                // Sovrascrittura immediata del browser
+                document.open();
+                document.write(softwareHTML); 
+                document.close();
+            } catch (e) {
+                alert("ERRORE: Codice sorgente corrotto.");
+                console.error(e);
             }
-
-        } catch (e) {
-            console.error("Errore critico:", e);
-            alert("ERRORE: Codice sorgente corrotto.");
-            location.reload();
+        } else {
+            alert("PASSWORD ERRATA!");
+            pField.value = "";
         }
-    } else {
-        alert("PASSWORD ERRATA!");
-        btn.innerText = "SBLOCCA SOFTWARE";
-        btn.disabled = false;
-        pField.value = "";
     }
-}
 
-// Funzione di supporto per attivare script in caso di iniezione forzata
-function riattivaScript(nodo) {
-    const scripts = nodo.querySelectorAll("script");
-    scripts.forEach(oldScript => {
-        const newScript = document.createElement("script");
-        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-        oldScript.parentNode.replaceChild(newScript, oldScript);
+    // 3. ATTIVAZIONE TASTO INVIO (Senza conflitti)
+    document.addEventListener('keydown', (e) => { 
+        if(e.key === 'Enter') {
+            const field = document.getElementById('passField');
+            if(document.activeElement === field) {
+                e.preventDefault();
+                controllaAccesso();
+            }
+        }
     });
-}
-
-// GESTORE TASTO INVIO (Previene il refresh e sblocca al primo colpo)
-document.getElementById('passField').addEventListener('keydown', function(e) { 
-    if (e.key === 'Enter') {
-        e.preventDefault(); 
-        controllaAccesso(); 
-    }
-});
 </script>
-
 </body>
 </html>
