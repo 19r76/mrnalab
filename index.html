@@ -225,62 +225,41 @@
     </div>
 
     <script>
-    // 1. CONFIGURAZIONE (Personalizza questi due valori)
-    // Inserisci qui l'HASH generato dal programma complesso
-    const HASH_CORRETTO = "4840b9f1c366c58fb92a194ab7d4768a616da26116ac08c3770552ebdceac764"; 
-    // Inserisci lo STESSO SALT che hai usato nel generatore
-    const SALT_SEGRETO = "stringa-segreta-123"; 
-
-    // 2. Pre-caricamento pagina protetta
-    const link = document.createElement('link');
-    link.rel = 'prefetch';
-    link.href = 'app_protetta.html';
-    document.head.appendChild(link);
-
-    // 3. Funzione Core di Hashing (Password + Salt + Base64 + SHA256)
-    async function generaHashComplesso(password, salt) {
-        // Uniamo password e salt
-        const combinata = password + salt;
-        
-        // Codifica in Base64 (identica al generatore che ti ho dato)
-        const base64 = btoa(unescape(encodeURIComponent(combinata)));
-
-        // Calcolo SHA-256
-        const msgBuffer = new TextEncoder().encode(base64);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        
-        // Conversione in stringa esadecimale
+    // Funzione per generare l'hash SHA-256 (necessaria per leggere il tuo codice)
+    async function generaSHA256(stringa) {
+        const msgUint8 = new TextEncoder().encode(stringa);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
         const hashArray = Array.from(new Uint8Array(hashBuffer));
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // 4. Logica di controllo
     async function controllaAccesso() {
         const inputField = document.getElementById('passField');
         const messaggio = document.getElementById('errore');
-        const passwordDigitata = inputField.value.trim();
+        
+        // Trasformiamo quello che scrivi in SHA-256
+        const hashInserito = await generaSHA256(inputField.value.trim());
 
-        if (!passwordDigitata) return;
+        // IL TUO CODICE SEGRETO
+        const hashCorretto = "4840b9f1c366c58fb92a194ab7d4768a616da26116ac08c3770552ebdceac764"; 
 
-        // Generiamo l'hash complesso dall'input dell'utente
-        const hashInserito = await generaHashComplesso(passwordDigitata, SALT_SEGRETO);
-
-        // Confronto
-        if (hashInserito === HASH_CORRETTO) {
+        if (hashInserito === hashCorretto) {
             window.location.href = "app_protetta.html"; 
         } else {
             messaggio.style.display = 'block';
+            messaggio.textContent = "ACCESS DENIED";
             inputField.value = "";
             inputField.focus();
-            // Nascondi errore dopo 3 secondi
-            setTimeout(() => { messaggio.style.display = 'none'; }, 3000);
         }
     }
 
-    // Gestione tasto Invio
+    // Invio con tasto Enter
     document.getElementById('passField').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') controllaAccesso();
+        if (e.key === 'Enter') {
+            controllaAccesso();
+        }
     });
 </script>
+
 </body>
 </html>
