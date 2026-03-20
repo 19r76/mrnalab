@@ -252,28 +252,29 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
     async function controllaAccesso() {
         const pField = document.getElementById('passField');
         const p = pField.value;
-        if(!p) return; // Evita invii a vuoto
+        if(!p) return;
 
         const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
         if (hashInserito === HASH_SALVATO) {
             try {
-                // 1. Decodifica istantanea
+                // 1. Decodifica il software in RAM
                 const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
                 
-                // 2. Creazione "File Virtuale" in RAM
-                const blob = new Blob([softwareHTML], { type: 'text/html' });
-                const blobUrl = URL.createObjectURL(blob);
+                // 2. CANCELLA TUTTO il contenuto della pagina di login immediatamente
+                document.open();
                 
-                // 3. Sostituzione atomica della pagina
-                window.location.replace(blobUrl);
-
-                // 4. Pulizia automatica della memoria
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                // 3. SCRIVE il nuovo software direttamente nel flusso della pagina
+                // Questo sostituisce il login con il software in un colpo solo
+                document.write(softwareHTML);
+                
+                // 4. CHIUDE il flusso per rendere la pagina interattiva
+                document.close();
 
             } catch (e) {
                 alert("ERRORE: Codice sorgente corrotto.");
                 console.error(e);
+                location.reload(); // In caso di errore gravissimo, resetta la pagina
             }
         } else {
             alert("PASSWORD ERRATA!");
@@ -281,10 +282,10 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
         }
     }
 
-    // LISTENER UNICO: Impedisce il ricaricamento della pagina (causa del doppio invio)
+    // LISTENER BLINDATO PER IL TASTO INVIO
     document.getElementById('passField').addEventListener('keydown', function(e) { 
         if (e.key === 'Enter') {
-            e.preventDefault(); // BLOCCA il refresh del browser
+            e.preventDefault(); // Impedisce il ricaricamento che causa il doppio invio
             controllaAccesso(); 
         }
     });
