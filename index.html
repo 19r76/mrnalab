@@ -561,9 +561,9 @@
     function genStrongPass() { document.getElementById('vp').value = Array.from(crypto.getRandomValues(new Uint8Array(18)), b => b.toString(36)).join(''); _not("OTP GENERATO", "success"); }
 </script>
 </body>
-</html>
-`
-.replace(/<\/script>/g, '<\/script>'); // Protezione per la chiusura degli script
+564 </html>
+565 `
+566 .replace(/<\/script>/g, '<\/script>');
 
     // --- 3. MOTORE DI CRIPTAZIONE E ACCESSO ---
     async function calcolaHash(password, salt) {
