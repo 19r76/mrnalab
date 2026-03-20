@@ -249,47 +249,44 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
     }
 
     async function controllaAccesso() {
-       alert("Codice ricevuto! Inizio decodifica..."); 
-        const pField = document.getElementById('passField');
-        const p = pField.value;
-        
-        // 1. Calcola l'hash della password inserita
-        const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
+    const pField = document.getElementById('passField');
+    const p = pField.value;
 
-        // 2. Verifica se l'hash coincide con quello salvato
-        if (hashInserito === HASH_SALVATO) {
-            try {
-                // 3. "Materializza" il codice: decodifica la stringa Base64
-                // Usiamo decodeURIComponent(escape()) per gestire correttamente caratteri speciali
-                const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
-                
-                // Crea il file virtuale (Blob)
-                const blob = new Blob([softwareHTML], { type: 'text/html' });
-                const blobURL = URL.createObjectURL(blob);
-                
-                // Apre il software in una nuova scheda
-                const nuovaTab = window.open(blobURL, '_blank');
-                
-                if (!nuovaTab) {
-                    alert("Popup bloccato! Abilita i popup per accedere al software.");
-                } else {
-                    pField.value = ""; // Pulisce il campo dopo l'accesso
-                }
-            } catch (e) {
-                console.error("Errore nella decodifica:", e);
-                alert("Errore nel caricamento del software. Controlla la stringa Base64.");
-            }
-        } else {
-            // Gestione errore (mostra il messaggio per 3 secondi)
-            const err = document.getElementById('errore');
-            if (err) {
-                err.style.display = 'block';
-                setTimeout(() => err.style.display = 'none', 3000);
+    // 1. Calcola l'hash della password inserita
+    const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
+
+    // 2. Verifica se l'hash coincide
+    if (hashInserito === HASH_SALVATO) {
+        // Messaggio di test: se vedi questo, la password è GIUSTA
+        alert("PASSWORD CORRETTA! Avvio decodifica del software...");
+
+        try {
+            // 3. Decodifica la stringa Base64
+            const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
+            
+            // Crea il file virtuale
+            const blob = new Blob([softwareHTML], { type: 'text/html' });
+            const blobURL = URL.createObjectURL(blob);
+            
+            // Apre il software
+            const nuovaTab = window.open(blobURL, '_blank');
+            
+            if (!nuovaTab) {
+                // Se vedi questo, il browser sta ancora bloccando l'apertura
+                alert("ATTENZIONE: Il browser ha bloccato l'apertura. Controlla la X ROSSA in alto a destra nella barra degli indirizzi!");
             } else {
-                alert("Accesso negato.");
+                pField.value = ""; 
             }
+        } catch (e) {
+            // Se vedi questo, la stringa BLACKBOX_ENCODED (riga 235) è copiata male
+            alert("ERRORE CRITICO: La stringa del software è corrotta o incompleta. Ricontrolla il punto 2 del codice.");
+            console.error(e);
         }
+    } else {
+        // Se vedi questo, la password che scrivi non è quella giusta
+        alert("PASSWORD ERRATA! Accesso negato.");
     }
+}
 
     // Permette di premere "Invio" sulla tastiera per accedere
     document.getElementById('passField').addEventListener('keypress', (e) => { 
