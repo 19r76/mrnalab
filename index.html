@@ -195,57 +195,35 @@
 <body>
 
         <!-- BOX ACCESSO -->
-    <div class="gatekeeper-ui">
-        <input type="password" id="passField" class="pass-input" placeholder="DIGIT CODE...">
-        <button class="btn-entra" onclick="validateAccess()">Entra</button>
-        <div id="errore">Accesso Negato - Codice Errato</div>
-    </div>
+<div class="gatekeeper-ui">
+    <input type="password" id="passField" class="pass-input" placeholder="DIGIT CODE...">
+    <button class="btn-entra" onclick="validateAccess()">Entra</button>
+    <div id="errore" style="color:red; display:none; margin-top:10px;">ACCESSO NEGATO</div>
+</div>
 
-    <div class="content">
-        <h1><span class="brand">mRNAlab</span></h1>
-        <span class="tagline">The Code of the Future</span>
-    </div>
+<script>
+function validateAccess() {
+    const input = document.getElementById('passField').value;
+    const errore = document.getElementById('errore');
+    
+    // Questa è la tua password "Ranitidina2026" codificata in Base64
+    // Impedisce che la parola sia leggibile a colpo d'occhio nel codice
+    const key = "UmFuaXRpZGluYTIwMjY=";
 
-    <!-- Struttura RNA (Semplificata per brevità) -->
-    <div class="rna-viewport">
-        <div class="helix">
-            <!-- Qui vanno i tuoi 60 nodi .node -->
-            <div class="node" style="--y:-300; --r:0;"></div>
-            <div class="node" style="--y:-280; --r:36;"></div>
-            <!-- ... aggiungi gli altri nodi qui ... -->
-        </div>
-    </div>
+    if (btoa(input) === key) {
+        errore.style.display = "none";
+        alert("Accesso autorizzato.");
+        window.location.href = "tuapagina_segreta.html"; 
+    } else {
+        errore.style.display = "block";
+    }
+}
 
-    <script>
-        async function validateAccess() {
-            const input = document.getElementById('passField').value;
-            const errore = document.getElementById('errore');
-            
-            // Genera Hash SHA-256 della password inserita
-            const msgBuffer = new TextEncoder().encode(input);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+// Supporto per il tasto Invio
+document.getElementById('passField').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') validateAccess();
+});
+</script>
 
-            // Hash corrispondente a "Ranitidina2026"
-            const hashValid = "649646be753d0859998e33f3829038ba98600868f9a2ba898539296683839213";
-
-            if (hashHex === hashValid) {
-                errore.style.display = "none";
-                alert("Decodifica completata. Accesso autorizzato.");
-                window.location.href = "dashboard.html"; // Cambia con la tua pagina reale
-            } else {
-                errore.style.display = "block";
-                document.getElementById('passField').value = ""; // Pulisce il campo
-            }
-        }
-
-        // Permette di premere "Invio" sulla tastiera per entrare
-        document.getElementById('passField').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                validateAccess();
-            }
-        });
-    </script>
 </body>
 </html>
