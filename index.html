@@ -196,9 +196,11 @@
 
     <!-- BOX ACCESSO -->
    <div class="gatekeeper-ui">
-    <input type="password" id="passField" placeholder="Inserisci Password">
-    <!-- Sostituisci la tua riga 200 con questa -->
-<button type="button" onclick="controllaAccesso()">SBLOCCA SOFTWARE</button>
+    <input type="password" id="passField" placeholder="Inserisci Password" autocomplete="off">
+    
+    <!-- Il type="button" impedisce il refresh della pagina (causa del doppio invio) -->
+    <button type="button" id="btnSblocca" onclick="controllaAccesso()">SBLOCCA SOFTWARE</button>
+    
     <p id="errore" style="display:none;">Access Denied</p>
 </div>
 
@@ -242,86 +244,79 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
 
     // --- 3. LOGICA DI SBLOCCO IN RAM (VISUALIZZAZIONE IMMEDIATA) ---
 
-    async function calcolaHash(password, salt) {
-        const stringa = btoa(unescape(encodeURIComponent(password + salt)));
-        const msgBuffer = new TextEncoder().encode(stringa);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+<script>
+async function calcolaHash(password, salt) {
+    const stringa = btoa(unescape(encodeURIComponent(password + salt)));
+    const msgBuffer = new TextEncoder().encode(stringa);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 async function controllaAccesso() {
     const pField = document.getElementById('passField');
+    const btn = document.getElementById('btnSblocca');
     const p = pField.value;
     if(!p) return;
+
+    // Feedback visivo immediato
+    btn.innerText = "DECRIPTAZIONE IN CORSO...";
+    btn.disabled = true;
 
     const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
     if (hashInserito === HASH_SALVATO) {
         try {
-            // 1. Decodifica il software in una variabile locale
+            // 1. DECODIFICA IN RAM
             const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
             
-            // 2. Sostituisce l'intero contenuto della pagina (BODY) in un colpo solo
-            // Questo elimina istantaneamente l'interfaccia di login
-            document.body.innerHTML = softwareHTML;
+            // 2. DISTRUZIONE TOTALE DEL LOGIN (Tabula Rasa)
+            document.open();
+            
+            // 3. INIEZIONE ATOMICA DEL SOFTWARE
+            document.write(softwareHTML);
+            
+            // 4. CHIUSURA FLUSSO (Attiva il rendering)
+            document.close();
 
-            // 3. Esegue forzatamente gli script contenuti nel software decodificato
-            // (Fondamentale perché innerHTML non avvia i tag <script> da solo)
-            const scripts = document.body.getElementsByTagName('script');
-            for (let i = 0; i < scripts.length; i++) {
-                const nuovoScript = document.createElement('script');
-                if (scripts[i].src) {
-                    nuovoScript.src = scripts[i].src;
-                } else {
-                    nuovoScript.textContent = scripts[i].textContent;
-                }
-                document.head.appendChild(nuovoScript).parentNode.removeChild(nuovoScript);
+            // NOTA: Se document.write venisse bloccato da policy restrittive, 
+            // il browser passerebbe automaticamente al metodo di riserva:
+            if (document.body.innerHTML === "") {
+                document.documentElement.innerHTML = softwareHTML;
+                riattivaScript(document.documentElement);
             }
 
-            // 4. Pulizia estetica (rimuove eventuali residui del login rimasti nell'HEAD)
-            const vecchioStile = document.querySelector('style'); 
-            if(vecchioStile) vecchioStile.remove();
-
         } catch (e) {
+            console.error("Errore critico:", e);
             alert("ERRORE: Codice sorgente corrotto.");
-            console.error(e);
+            location.reload();
         }
     } else {
         alert("PASSWORD ERRATA!");
+        btn.innerText = "SBLOCCA SOFTWARE";
+        btn.disabled = false;
         pField.value = "";
     }
 }
 
-// LISTENER UNICO (Per evitare il doppio invio)
+// Funzione di supporto per attivare script in caso di iniezione forzata
+function riattivaScript(nodo) {
+    const scripts = nodo.querySelectorAll("script");
+    scripts.forEach(oldScript => {
+        const newScript = document.createElement("script");
+        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+        oldScript.parentNode.replaceChild(newScript, oldScript);
+    });
+}
+
+// GESTORE TASTO INVIO (Previene il refresh e sblocca al primo colpo)
 document.getElementById('passField').addEventListener('keydown', function(e) { 
     if (e.key === 'Enter') {
         e.preventDefault(); 
         controllaAccesso(); 
     }
 });
-
-    // Opzionale: Funzione per generare nuovi Hash (se ti serve in fase di test)
-    async function aggiornaHash() {
-        const p = document.getElementById('pGen')?.value;
-        const s = document.getElementById('sGen')?.value;
-        if(p && s) {
-            const res = await calcolaHash(p, s);
-            const output = document.querySelector('#hashResult span');
-            if(output) output.innerText = res;
-        }
-    }
-
-
-    async function aggiornaHash() {
-        const p = document.getElementById('pGen').value;
-        const s = document.getElementById('sGen').value;
-        if(p) {
-            const res = await calcolaHash(p, s);
-            document.querySelector('#hashResult span').innerText = res;
-        }
-    }
 </script>
-
 
 </body>
 </html>
