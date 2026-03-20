@@ -197,7 +197,7 @@
     <!-- BOX ACCESSO -->
    <div class="gatekeeper-ui">
     <input type="password" id="passField" class="pass-input" placeholder="SECURITY KEY">
-    <button type="button" onclick="controllaAccesso()" class="btn-entra">IDENTIFY</button>
+    <button type="button" onclick="event.preventDefault(); controllaAccesso();" class="btn-entra">IDENTIFY</button>
     <p id="errore" style="display:none;">Access Denied</p>
 </div>
 
