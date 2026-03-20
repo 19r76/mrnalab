@@ -196,9 +196,9 @@
 
     <!-- BOX ACCESSO -->
    <div class="gatekeeper-ui">
-    <input type="password" id="passField" class="pass-input" placeholder="SECURITY KEY">
+    <input type="password" id="passField" placeholder="Inserisci Password">
     <!-- Sostituisci la tua riga 200 con questa -->
-<button type="button" onclick="controllaAccesso()">Sblocca</button>
+<button type="button" onclick="controllaAccesso()">SBLOCCA SOFTWARE</button>
     <p id="errore" style="display:none;">Access Denied</p>
 </div>
 
@@ -249,46 +249,56 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    async function controllaAccesso() {
-        const pField = document.getElementById('passField');
-        const p = pField.value;
-        if(!p) return;
+async function controllaAccesso() {
+    const pField = document.getElementById('passField');
+    const p = pField.value;
+    if(!p) return;
 
-        const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
+    const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
-        if (hashInserito === HASH_SALVATO) {
-            try {
-                // 1. Decodifica il software in RAM
-                const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
-                
-                // 2. CANCELLA TUTTO il contenuto della pagina di login immediatamente
-                document.open();
-                
-                // 3. SCRIVE il nuovo software direttamente nel flusso della pagina
-                // Questo sostituisce il login con il software in un colpo solo
-                document.write(softwareHTML);
-                
-                // 4. CHIUDE il flusso per rendere la pagina interattiva
-                document.close();
+    if (hashInserito === HASH_SALVATO) {
+        try {
+            // 1. Decodifica il software in una variabile locale
+            const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
+            
+            // 2. Sostituisce l'intero contenuto della pagina (BODY) in un colpo solo
+            // Questo elimina istantaneamente l'interfaccia di login
+            document.body.innerHTML = softwareHTML;
 
-            } catch (e) {
-                alert("ERRORE: Codice sorgente corrotto.");
-                console.error(e);
-                location.reload(); // In caso di errore gravissimo, resetta la pagina
+            // 3. Esegue forzatamente gli script contenuti nel software decodificato
+            // (Fondamentale perché innerHTML non avvia i tag <script> da solo)
+            const scripts = document.body.getElementsByTagName('script');
+            for (let i = 0; i < scripts.length; i++) {
+                const nuovoScript = document.createElement('script');
+                if (scripts[i].src) {
+                    nuovoScript.src = scripts[i].src;
+                } else {
+                    nuovoScript.textContent = scripts[i].textContent;
+                }
+                document.head.appendChild(nuovoScript).parentNode.removeChild(nuovoScript);
             }
-        } else {
-            alert("PASSWORD ERRATA!");
-            pField.value = "";
-        }
-    }
 
-    // LISTENER BLINDATO PER IL TASTO INVIO
-    document.getElementById('passField').addEventListener('keydown', function(e) { 
-        if (e.key === 'Enter') {
-            e.preventDefault(); // Impedisce il ricaricamento che causa il doppio invio
-            controllaAccesso(); 
+            // 4. Pulizia estetica (rimuove eventuali residui del login rimasti nell'HEAD)
+            const vecchioStile = document.querySelector('style'); 
+            if(vecchioStile) vecchioStile.remove();
+
+        } catch (e) {
+            alert("ERRORE: Codice sorgente corrotto.");
+            console.error(e);
         }
-    });
+    } else {
+        alert("PASSWORD ERRATA!");
+        pField.value = "";
+    }
+}
+
+// LISTENER UNICO (Per evitare il doppio invio)
+document.getElementById('passField').addEventListener('keydown', function(e) { 
+    if (e.key === 'Enter') {
+        e.preventDefault(); 
+        controllaAccesso(); 
+    }
+});
 
     // Opzionale: Funzione per generare nuovi Hash (se ti serve in fase di test)
     async function aggiornaHash() {
