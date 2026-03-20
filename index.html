@@ -225,65 +225,58 @@
     </div>
 
     <script>
-    // Funzione universale (funziona anche offline)
-    function generaCodice(str) {
-        let h = 0;
-        for (let i = 0; i < str.length; i++) {
-            h = Math.imul(31, h) + str.charCodeAt(i) | 0;
-        }
-        return h.toString();
-    }
-
     function controllaAccesso() {
         const inputField = document.getElementById('passField');
         const messaggio = document.getElementById('errore');
         
-        // Puliamo la stringa da spazi vuoti accidentali
+        // 1. Legge il valore e toglie eventuali spazi vuoti accidentali
         const passwordInserita = inputField.value.trim();
         
-        // Generiamo il codice numerico della password scritta
-        const codiceGenerato = generaCodice(passwordInserita);
+        // 2. Converte la password inserita in Base64 (una codifica standard)
+        const codificaInserita = btoa(passwordInserita);
 
         /* 
-           PASSWORD IMPOSTATA: lab2024
-           IL SUO CODICE CORRISPONDENTE È: 1060934091
+           PASSWORD IMPOSTATA: mrna2024
+           LA SUA CODIFICA CORRISPONDENTE È: bXJuYTIwMjQ=
         */
-        const codiceCorretto = "1060934091"; 
+        const codificaCorretta = "bXJuYTIwMjQ="; 
 
-        if (codiceGenerato === codiceCorretto) {
-            // SUCCESSO
+        if (codificaInserita === codificaCorretta) {
+            // --- SUCCESSO ---
             messaggio.style.display = "block";
             messaggio.textContent = "ACCESS GRANTED";
             messaggio.style.color = "#00ff00";
             
-            // Effetto dissolvenza e sblocco
+            // Effetto sparizione del box
             setTimeout(() => {
-                document.querySelector('.gatekeeper-ui').style.transition = "opacity 0.5s";
-                document.querySelector('.gatekeeper-ui').style.opacity = "0";
-                setTimeout(() => {
-                    document.querySelector('.gatekeeper-ui').style.display = "none";
-                    // Qui puoi attivare l'animazione dell'RNA o mostrare il resto
-                    console.log("Sistema sbloccato");
-                }, 500);
-            }, 800);
+                const ui = document.querySelector('.gatekeeper-ui');
+                ui.style.transition = "all 0.8s ease";
+                ui.style.opacity = "0";
+                ui.style.transform = "translateY(20px)";
+                setTimeout(() => { ui.style.display = "none"; }, 800);
+            }, 500);
             
         } else {
-            // ERRORE
+            // --- ERRORE ---
             messaggio.style.display = "block";
             messaggio.textContent = "ACCESS DENIED";
             messaggio.style.color = "#ff0000";
-            inputField.value = ""; // Pulisce il campo
-            inputField.focus();    // Riporta il cursore nel campo
+            
+            // Animazione di "shake" (vibrazione) per l'errore
+            inputField.style.border = "1px solid red";
+            setTimeout(() => { inputField.style.border = "none"; }, 500);
+            
+            inputField.value = ""; 
+            inputField.focus();
         }
     }
 
-    // Permette di premere "Invio" sulla tastiera per accedere
+    // Permette di premere "Invio" per accedere velocemente
     document.getElementById('passField').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-            controllaAccesso();
-        }
+        if (e.key === 'Enter') { controllaAccesso(); }
     });
 </script>
+
 
 </body>
 </html>
