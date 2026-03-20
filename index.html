@@ -250,18 +250,32 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
 
     async function controllaAccesso() {
     const pField = document.getElementById('passField');
-    const hashInserito = await calcolaHash(pField.value, SALT_CONFIGURATO);
+    const p = pField.value;
+    const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
     if (hashInserito === HASH_SALVATO) {
         try {
-            // Decodifica il codice
+            // 1. Decodifica il codice invisibile
             const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
             
-            // CANCELLA TUTTA LA VETRINA E INSERISCE IL SOFTWARE
-            document.open();
-            document.write(softwareHTML);
-            document.close();
+            // 2. Crea un file "fantasma" in memoria
+            const blob = new Blob([softwareHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
             
+            // 3. Crea un link invisibile, lo clicca e lo distrugge
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = "mRNAlab_Software.html"; // Forza il download o l'apertura pulita
+            document.body.appendChild(a);
+            a.click();
+            
+            // 4. Pulizia
+            setTimeout(() => {
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            }, 100);
+
+            pField.value = "";
         } catch (e) {
             alert("ERRORE NELLA STRINGA: Il codice Base64 è corrotto o incompleto.");
             console.error(e);
