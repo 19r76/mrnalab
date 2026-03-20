@@ -194,59 +194,58 @@
 </head>
 <body>
 
-    <!-- BOX ACCESSO -->
+        <!-- BOX ACCESSO -->
     <div class="gatekeeper-ui">
-        <input type="password" id="passInput" class="pass-input" placeholder="SECURITY KEY">
-        <button onclick="controllaAccesso()" class="btn-entra">IDENTIFY</button>
-        <p id="errore">Access Denied</p>
+        <input type="password" id="passField" class="pass-input" placeholder="DIGIT CODE...">
+        <button class="btn-entra" onclick="validateAccess()">Entra</button>
+        <div id="errore">Accesso Negato - Codice Errato</div>
     </div>
 
     <div class="content">
-        <h1><span class="brand">mRNAlab</span>.it</h1>
+        <h1><span class="brand">mRNAlab</span></h1>
         <span class="tagline">The Code of the Future</span>
     </div>
 
+    <!-- Struttura RNA (Semplificata per brevità) -->
     <div class="rna-viewport">
         <div class="helix">
-            <!-- Sequenza mRNA di 60 nodi -->
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
-            <div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div><div class="node"></div>
+            <!-- Qui vanno i tuoi 60 nodi .node -->
+            <div class="node" style="--y:-300; --r:0;"></div>
+            <div class="node" style="--y:-280; --r:36;"></div>
+            <!-- ... aggiungi gli altri nodi qui ... -->
         </div>
     </div>
 
     <script>
-        async function controllaPassword() {
-            const input = document.getElementById('passwordInput').value;
+        async function validateAccess() {
+            const input = document.getElementById('passField').value;
+            const errore = document.getElementById('errore');
             
-            // Genera l'impronta (Hash) della password inserita
+            // Genera Hash SHA-256 della password inserita
             const msgBuffer = new TextEncoder().encode(input);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-            // Questo è l'hash di "Ranitidina2026"
-            const hashCorretto = "649646be753d0859998e33f3829038ba98600868f9a2ba898539296683839213";
+            // Hash corrispondente a "Ranitidina2026"
+            const hashValid = "649646be753d0859998e33f3829038ba98600868f9a2ba898539296683839213";
 
-            if (hashHex === hashCorretto) {
-                alert("Accesso eseguito!");
-                // Qui metti il link alla pagina protetta
-                window.location.href = "tuapagina_segreta.html";
+            if (hashHex === hashValid) {
+                errore.style.display = "none";
+                alert("Decodifica completata. Accesso autorizzato.");
+                window.location.href = "dashboard.html"; // Cambia con la tua pagina reale
             } else {
-                alert("Password errata. Riprova.");
+                errore.style.display = "block";
+                document.getElementById('passField').value = ""; // Pulisce il campo
             }
         }
+
+        // Permette di premere "Invio" sulla tastiera per entrare
+        document.getElementById('passField').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                validateAccess();
+            }
+        });
     </script>
-
-
 </body>
 </html>
