@@ -224,31 +224,49 @@
         </div>
     </div>
 
-    <script>
-    // --- 1. CONFIGURAZIONE ---
-    // Incolla qui l'hash generato dallo strumento in basso
+   <script>
+    // --- 1. CONFIGURAZIONE SICUREZZA ---
     const HASH_SALVATO = "6fcad768f2293eb746c555ac43c0f5aeb3e94a4666a495f5d70c7da2aaa92de0"; 
-    // Inserisci qui lo STESSO Salt che hai usato nel generatore
     const SALT_CONFIGURATO = "1R97@2b2bF79c0524"; 
 
-    // --- 2. FUNZIONE DI CALCOLO UNIFICATA ---
+    // --- 2. IL TUO SOFTWARE (Parti 1-5) ---
+    // Usiamo i backtick per contenere l'intero codice HTML/CSS/JS della BlackBox.
+    // NOTA: Se nel tuo codice originale ci sono dei backtick (`), aggiungi un \ prima (es: \`)
+    const BLACKBOX_SOURCE = `
+        <!-- INCOLLA QUI TUTTE LE 5 PARTI DEL TUO CODICE -->
+        <!-- PARTI 1, 2, 3, 4 e 5 IN SEQUENZA -->
+    `;
+
+    // --- 3. FUNZIONE DI CALCOLO HASH ---
     async function calcolaHash(password, salt) {
-        // Unione e Base64 (gestisce caratteri speciali)
         const stringa = btoa(unescape(encodeURIComponent(password + salt)));
-        // Calcolo SHA-256
         const msgBuffer = new TextEncoder().encode(stringa);
         const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        // Converti in Hex
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // --- 3. LOGICA DI LOGIN ---
+    // --- 4. LOGICA DI ACCESSO CON BLOB URL ---
     async function controllaAccesso() {
-        const p = document.getElementById('passField').value;
+        const pField = document.getElementById('passField');
+        const p = pField.value;
         const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
         if (hashInserito === HASH_SALVATO) {
-            window.location.href = "app_protetta.html";
+            // Creazione del file virtuale in memoria (Blob)
+            const blob = new Blob([BLACKBOX_SOURCE], { type: 'text/html' });
+            const blobURL = URL.createObjectURL(blob);
+            
+            // Apertura del software in una nuova scheda isolata
+            const nuovaTab = window.open(blobURL, '_blank');
+            
+            if (!nuovaTab) {
+                alert("ATTENZIONE: Il browser ha bloccato il popup. Abilita i popup per mRNALab e riprova.");
+            } else {
+                // Pulizia campo per sicurezza dopo lo sblocco
+                pField.value = "";
+                // Opzionale: revoca l'URL dopo un breve delay per non lasciare tracce
+                setTimeout(() => URL.revokeObjectURL(blobURL), 10000);
+            }
         } else {
             const err = document.getElementById('errore');
             err.style.display = 'block';
@@ -256,7 +274,7 @@
         }
     }
 
-    // --- 4. FUNZIONE PER IL GENERATORE ---
+    // --- 5. UTILITY GENERATORE & INPUT ---
     async function aggiornaHash() {
         const p = document.getElementById('pGen').value;
         const s = document.getElementById('sGen').value;
@@ -266,10 +284,11 @@
         }
     }
 
-    // Invio con tasto Enter
-    document.getElementById('passField').onkeypress = (e) => { if(e.key === 'Enter') controllaAccesso(); };
+    // Listener per il tasto Invio
+    document.getElementById('passField').addEventListener('keypress', (e) => { 
+        if(e.key === 'Enter') controllaAccesso(); 
+    });
 </script>
-
 
 </body>
 </html>
