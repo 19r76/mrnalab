@@ -225,52 +225,65 @@
     </div>
 
     <script>
-    // Funzione di hashing semplice (funziona ovunque, anche senza HTTPS)
-    function generaHashSemplice(s) {
-        let hash = 0;
-        for (let i = 0; i < s.length; i++) {
-            hash = ((hash << 5) - hash) + s.charCodeAt(i);
-            hash |= 0; 
+    // Funzione universale (funziona anche offline)
+    function generaCodice(str) {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) {
+            h = Math.imul(31, h) + str.charCodeAt(i) | 0;
         }
-        return hash.toString();
+        return h.toString();
     }
 
     function controllaAccesso() {
-        const input = document.getElementById('passField').value;
-        const messaggioErrore = document.getElementById('errore');
+        const inputField = document.getElementById('passField');
+        const messaggio = document.getElementById('errore');
         
-        // Generiamo l'hash della password scritta
-        const hashInserito = generaHashSemplice(input);
+        // Puliamo la stringa da spazi vuoti accidentali
+        const passwordInserita = inputField.value.trim();
+        
+        // Generiamo il codice numerico della password scritta
+        const codiceGenerato = generaCodice(passwordInserita);
 
         /* 
-           PASSWORD DI TEST: mRNAlab2024
-           L'hash corrispondente è: -1813470732
+           PASSWORD IMPOSTATA: lab2024
+           IL SUO CODICE CORRISPONDENTE È: 1060934091
         */
-        const hashCorretto = "-1813470732"; 
+        const codiceCorretto = "1060934091"; 
 
-        if (hashInserito === hashCorretto) {
-            messaggioErrore.style.display = "block";
-            messaggioErrore.textContent = "ACCESS GRANTED";
-            messaggioErrore.style.color = "#00ff00";
+        if (codiceGenerato === codiceCorretto) {
+            // SUCCESSO
+            messaggio.style.display = "block";
+            messaggio.textContent = "ACCESS GRANTED";
+            messaggio.style.color = "#00ff00";
             
-            // Effetto sblocco: nasconde il box dopo 1 secondo
+            // Effetto dissolvenza e sblocco
             setTimeout(() => {
+                document.querySelector('.gatekeeper-ui').style.transition = "opacity 0.5s";
                 document.querySelector('.gatekeeper-ui').style.opacity = "0";
                 setTimeout(() => {
                     document.querySelector('.gatekeeper-ui').style.display = "none";
+                    // Qui puoi attivare l'animazione dell'RNA o mostrare il resto
+                    console.log("Sistema sbloccato");
                 }, 500);
-            }, 1000);
+            }, 800);
             
         } else {
-            // Effetto errore
-            messaggioErrore.style.display = "block";
-            messaggioErrore.textContent = "ACCESS DENIED";
-            messaggioErrore.style.color = "#ff0000";
-            document.getElementById('passField').value = ""; // Pulisce il campo
+            // ERRORE
+            messaggio.style.display = "block";
+            messaggio.textContent = "ACCESS DENIED";
+            messaggio.style.color = "#ff0000";
+            inputField.value = ""; // Pulisce il campo
+            inputField.focus();    // Riporta il cursore nel campo
         }
     }
-</script>
 
+    // Permette di premere "Invio" sulla tastiera per accedere
+    document.getElementById('passField').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            controllaAccesso();
+        }
+    });
+</script>
 
 </body>
 </html>
