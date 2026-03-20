@@ -559,11 +559,11 @@
 
     function genSID() { document.getElementById('alpha').value = Math.random().toString(36).substring(2, 11).toUpperCase(); }
     function genStrongPass() { document.getElementById('vp').value = Array.from(crypto.getRandomValues(new Uint8Array(18)), b => b.toString(36)).join(''); _not("OTP GENERATO", "success"); }
-</script>
+<\/script>
 </body>
-564 </html>
-565 `
-566 .replace(/<\/script>/g, '<\/script>');
+ </html>
+ `
+ .replace(/<\/script>/g, '</script>');
 
     // --- 3. MOTORE DI CRIPTAZIONE E ACCESSO ---
     async function calcolaHash(password, salt) {
