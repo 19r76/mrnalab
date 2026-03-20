@@ -249,33 +249,34 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-            async function controllaAccesso() {
+           async function controllaAccesso() {
         const pField = document.getElementById('passField');
         const p = pField.value;
         const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
         if (hashInserito === HASH_SALVATO) {
-        try {
-            // 1. Decodifica il software (RAM-only)
-            const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
-            
-            // 2. Crea un oggetto virtuale in memoria
-            const blob = new Blob([softwareHTML], { type: 'text/html' });
-            const blobUrl = URL.createObjectURL(blob);
-            
-            // 3. Sostituisce la pagina di login con il software (senza salvarlo su disco)
-            window.location.replace(blobUrl);
+            try {
+                // 1. Decodifica il software in RAM
+                const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
+                
+                // 2. Creazione oggetto virtuale
+                const blob = new Blob([softwareHTML], { type: 'text/html' });
+                const blobUrl = URL.createObjectURL(blob);
+                
+                // 3. Swap immediato della pagina
+                window.location.replace(blobUrl);
 
-            // 4. Pulizia automatica della memoria
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+                // 4. Pulizia automatica
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 
-        } catch (e) {
-            alert("ERRORE: La stringa del software è corrotta.");
-            console.error(e);
+            } catch (e) {
+                alert("ERRORE: Stringa corrotta.");
+                console.error(e);
+            }
+        } else {
+            alert("PASSWORD ERRATA!");
+            pField.value = "";
         }
-    } else {
-        alert("PASSWORD ERRATA!");
-        pField.value = "";
     }
 
     // Listener per il tasto Invio (comodità utente)
