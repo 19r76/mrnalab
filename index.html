@@ -225,25 +225,34 @@
     </div>
 
     <script>
-    // Pre-caricamento della pagina (opzionale, velocizza il caricamento reale)
+    // 1. Pre-caricamento
     const link = document.createElement('link');
     link.rel = 'prefetch';
     link.href = 'app_protetta.html';
     document.head.appendChild(link);
 
-    function controllaAccesso() {
+    // 2. Funzione per generare l'Hash SHA-256 (necessaria per il confronto)
+    async function generaSHA256(stringa) {
+        const msgUint8 = new TextEncoder().encode(stringa);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // 3. Funzione di controllo
+    async function controllaAccesso() {
         const inputField = document.getElementById('passField');
         const messaggio = document.getElementById('errore');
         
-        // Confronto immediato
-        const passInserita = btoa(inputField.value.trim());
-        const passCorretta = "0f73cba913d39ff6cbf482aba69785c56e592901e566869a4f28fb9c6b8964f4"; 
+        // Generiamo l'hash della password scritta dall'utente
+        const hashInserito = await generaSHA256(inputField.value.trim());
 
-        if (passInserita === passCorretta) {
-            // Reindirizzamento IMMEDIATO senza attese
+        // Il tuo hash sicuro (SHA-256)
+        const hashCorretto = "0f73cba913d39ff6cbf482aba69785c56e592901e566869a4f28fb9c6b8964f4"; 
+
+        if (hashInserito === hashCorretto) {
             window.location.href = "app_protetta.html"; 
         } else {
-            // Mostra errore solo se fallisce
             messaggio.style.display = 'block';
             messaggio.textContent = "ACCESS DENIED";
             inputField.value = "";
@@ -251,11 +260,11 @@
         }
     }
 
-    // Invio rapido con tasto Enter
     document.getElementById('passField').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') controllaAccesso();
     });
 </script>
+
 
 </body>
 </html>
