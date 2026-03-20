@@ -249,32 +249,28 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
         return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-        async function controllaAccesso() {
+            async function controllaAccesso() {
         const pField = document.getElementById('passField');
         const p = pField.value;
         const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
         if (hashInserito === HASH_SALVATO) {
             try {
-                // 1. Decodifica il software
+                // 1. Decodifica il software in RAM
                 const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
                 
-                // 2. Pulizia totale della pagina di login
-                document.open();
-                document.write(`
-                    <style>body,html{margin:0;padding:0;height:100%;overflow:hidden;} iframe{width:100%;height:100%;border:none;}</style>
-                    <iframe id="softwareFrame"></iframe>
-                `);
-                document.close();
+                // 2. Sostituzione totale e istantanea dell'HTML della pagina
+                // Questo elimina i campi di login e inietta il software
+                document.documentElement.innerHTML = softwareHTML;
 
-                // 3. Iniezione del software nell'iframe (Isolamento totale variabili)
-                const frame = document.getElementById('softwareFrame').contentWindow.document;
-                frame.open();
-                frame.write(softwareHTML);
-                frame.close();
+                // 3. Riavvio degli script (necessario perché innerHTML non esegue i tag <script>)
+                const scripts = document.documentElement.getElementsByTagName('script');
+                for (let n = 0; n < scripts.length; n++) {
+                    eval(scripts[n].innerHTML);
+                }
 
             } catch (e) {
-                alert("ERRORE: Codice sorgente non valido.");
+                alert("ERRORE: Codice sorgente non valido o corrotto.");
                 console.error(e);
             }
         } else {
