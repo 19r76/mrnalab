@@ -195,11 +195,11 @@
 <body>
 
     <!-- BOX ACCESSO -->
-    <div class="gatekeeper-ui">
-        <input type="password" id="passInput" class="pass-input" placeholder="SECURITY KEY">
-        <button onclick="controllaAccesso()" class="btn-entra">IDENTIFY</button>
-        <p id="errore">Access Denied</p>
-    </div>
+   <div class="gatekeeper-ui">
+    <input type="password" id="passField" class="pass-input" placeholder="SECURITY KEY">
+    <button onclick="controllaAccesso()" class="btn-entra">IDENTIFY</button>
+    <p id="errore" style="display:none;">Access Denied</p>
+</div>
 
     <div class="content">
         <h1><span class="brand">mRNAlab</span>.it</h1>
@@ -225,7 +225,7 @@
     </div>
 
     <script>
-    // Funzione per criptare la password in SHA-256
+    // 1. Funzione per la codifica (Hasc/Hash)
     async function generaHash(stringa) {
         const msgUint8 = new TextEncoder().encode(stringa);
         const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
@@ -233,33 +233,34 @@
         return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    async function validaAccesso() {
+    // 2. Funzione di controllo (deve avere lo stesso nome dell'onclick)
+    async function controllaAccesso() {
         const input = document.getElementById('passField').value;
-        const feedback = document.getElementById('message');
+        const messaggioErrore = document.getElementById('errore');
         
         // Generiamo l'hash della password inserita
         const hashInserito = await generaHash(input);
 
-        // Hash della password "segreta" (cambiala se vuoi)
+        // Hash della parola "segreta"
         const hashCorretto = "2ebb6c38228d44e590f2305602058448ec628849767a99859f5b6134b223d6a2"; 
 
         if (hashInserito === hashCorretto) {
-            feedback.textContent = "Password corretta! Accesso in corso...";
-            feedback.className = "success";
+            messaggioErrore.style.display = "block";
+            messaggioErrore.textContent = "Access Granted";
+            messaggioErrore.style.color = "#00ff00"; // Verde
             
-            // Azione dopo il login (es: nasconde il box o cambia pagina)
+            // Azione: es. reindirizzamento o sblocco contenuto
             setTimeout(() => {
-                document.getElementById('login-container').style.display = 'none';
-                // window.location.href = "area-privata.html"; 
-            }, 1000);
+                alert("Accesso Autorizzato!");
+            }, 500);
             
         } else {
-            feedback.textContent = "Password errata.";
-            feedback.className = "error";
-            document.getElementById('passField').value = ""; // Pulisce il campo
+            messaggioErrore.style.display = "block";
+            messaggioErrore.textContent = "Access Denied";
+            messaggioErrore.style.color = "#ff0000"; // Rosso
+            document.getElementById('passField').value = ""; 
         }
     }
 </script>
-
 </body>
 </html>
