@@ -256,19 +256,22 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
 
         if (hashInserito === HASH_SALVATO) {
             try {
-                // 1. Decodifica il software in una variabile temporanea (RAM)
+                // 1. Decodifica il software in RAM
                 const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
                 
-                // 2. SOVRASCRITTURA IMMEDIATA DEL BROWSER
-                // Questo comando cancella la pagina di login e inietta il software
-                document.open();
-                document.write(softwareHTML); 
-                document.close();
-
-                // Da questo momento la pagina di login non esiste più nel browser
+                // 2. Pulizia radicale per evitare l'errore "Already Declared"
+                document.body.innerHTML = ""; 
                 
+                // 3. Sovrascrittura con micro-ritardo (risolve il SyntaxError di F12)
+                setTimeout(() => {
+                    document.open();
+                    document.write(softwareHTML); 
+                    document.close();
+                }, 10);
+
+                pField.value = "";
             } catch (e) {
-                alert("ERRORE: La stringa del software è corrotta.");
+                alert("ERRORE: La stringa del software è corrotta o incompleta.");
                 console.error(e);
             }
         } else {
@@ -276,6 +279,7 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
             pField.value = "";
         }
     }
+
 
     // Listener per il tasto Invio (comodità utente)
     document.getElementById('passField').addEventListener('keypress', (e) => { 
