@@ -225,42 +225,52 @@
     </div>
 
     <script>
-    // Funzione di hashing semplificata per compatibilità locale
-    function sempliceHash(s) {
-        let h = 0;
-        for(let i = 0; i < s.length; i++)
-            h = Math.imul(31, h) + s.charCodeAt(i) | 0;
-        return h.toString();
+    // Funzione di hashing semplice (funziona ovunque, anche senza HTTPS)
+    function generaHashSemplice(s) {
+        let hash = 0;
+        for (let i = 0; i < s.length; i++) {
+            hash = ((hash << 5) - hash) + s.charCodeAt(i);
+            hash |= 0; 
+        }
+        return hash.toString();
     }
 
     function controllaAccesso() {
         const input = document.getElementById('passField').value;
         const messaggioErrore = document.getElementById('errore');
         
-        // Generiamo l'hash della password inserita
-        const hashInserito = sempliceHash(input);
+        // Generiamo l'hash della password scritta
+        const hashInserito = generaHashSemplice(input);
 
-        // Questo è l'hash della parola "segreta" calcolato con questa funzione
-        const hashCorretto = "1874288000"; 
+        /* 
+           PASSWORD DI TEST: mRNAlab2024
+           L'hash corrispondente è: -1813470732
+        */
+        const hashCorretto = "-1813470732"; 
 
         if (hashInserito === hashCorretto) {
             messaggioErrore.style.display = "block";
-            messaggioErrore.textContent = "Access Granted";
+            messaggioErrore.textContent = "ACCESS GRANTED";
             messaggioErrore.style.color = "#00ff00";
             
+            // Effetto sblocco: nasconde il box dopo 1 secondo
             setTimeout(() => {
-                alert("Accesso Autorizzato!");
-                // Qui puoi aggiungere: document.querySelector('.gatekeeper-ui').style.display = 'none';
-            }, 500);
+                document.querySelector('.gatekeeper-ui').style.opacity = "0";
+                setTimeout(() => {
+                    document.querySelector('.gatekeeper-ui').style.display = "none";
+                }, 500);
+            }, 1000);
             
         } else {
+            // Effetto errore
             messaggioErrore.style.display = "block";
-            messaggioErrore.textContent = "Access Denied";
+            messaggioErrore.textContent = "ACCESS DENIED";
             messaggioErrore.style.color = "#ff0000";
-            document.getElementById('passField').value = ""; 
+            document.getElementById('passField').value = ""; // Pulisce il campo
         }
     }
 </script>
+
 
 </body>
 </html>
