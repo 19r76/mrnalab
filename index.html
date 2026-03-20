@@ -255,28 +255,27 @@ const BLACKBOX_ENCODED = "PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9Iml0Ij4KPGhlYWQ+Ci
         const hashInserito = await calcolaHash(p, SALT_CONFIGURATO);
 
         if (hashInserito === HASH_SALVATO) {
-            try {
-                // 1. Decodifica il software in RAM
-                const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
-                
-                // 2. Sostituzione totale e istantanea dell'HTML della pagina
-                // Questo elimina i campi di login e inietta il software
-                document.documentElement.innerHTML = softwareHTML;
+        try {
+            // 1. Decodifica il software (RAM-only)
+            const softwareHTML = decodeURIComponent(escape(atob(BLACKBOX_ENCODED))); 
+            
+            // 2. Crea un oggetto virtuale in memoria
+            const blob = new Blob([softwareHTML], { type: 'text/html' });
+            const blobUrl = URL.createObjectURL(blob);
+            
+            // 3. Sostituisce la pagina di login con il software (senza salvarlo su disco)
+            window.location.replace(blobUrl);
 
-                // 3. Riavvio degli script (necessario perché innerHTML non esegue i tag <script>)
-                const scripts = document.documentElement.getElementsByTagName('script');
-                for (let n = 0; n < scripts.length; n++) {
-                    eval(scripts[n].innerHTML);
-                }
+            // 4. Pulizia automatica della memoria
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
 
-            } catch (e) {
-                alert("ERRORE: Codice sorgente non valido o corrotto.");
-                console.error(e);
-            }
-        } else {
-            alert("PASSWORD ERRATA!");
-            pField.value = "";
+        } catch (e) {
+            alert("ERRORE: La stringa del software è corrotta.");
+            console.error(e);
         }
+    } else {
+        alert("PASSWORD ERRATA!");
+        pField.value = "";
     }
 
     // Listener per il tasto Invio (comodità utente)
