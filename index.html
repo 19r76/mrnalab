@@ -225,45 +225,35 @@
     </div>
 
     <script>
+    // Pre-caricamento della pagina (opzionale, velocizza il caricamento reale)
+    const link = document.createElement('link');
+    link.rel = 'prefetch';
+    link.href = 'app_protetta.html';
+    document.head.appendChild(link);
+
     function controllaAccesso() {
         const inputField = document.getElementById('passField');
         const messaggio = document.getElementById('errore');
         
-        // Pulizia spazi e codifica della password scritta dall'utente
+        // Confronto immediato
         const passInserita = btoa(inputField.value.trim());
-
-        /* 
-           PASSWORD IMPOSTATA: mrna2024
-           Il codice corrispondente è: bXJuYTIwMjQ=
-        */
-        const passCorretta = "bXJuYTIwMjQ="; 
+        const passCorretta = "bXJuYTIwMjQ="; // Corrisponde a: mrna2024
 
         if (passInserita === passCorretta) {
-            // Mostra messaggio di successo
-            messaggio.style.display = 'block';
-            messaggio.textContent = "ACCESS GRANTED";
-            messaggio.style.color = "#00ff00";
-            
-            // Reindirizzamento dopo un breve ritardo per mostrare il messaggio
-            setTimeout(() => {
-                window.location.href = "app_protetta.html"; 
-            }, 800);
-
+            // Reindirizzamento IMMEDIATO senza attese
+            window.location.href = "app_protetta.html"; 
         } else {
-            // Mostra messaggio di errore
+            // Mostra errore solo se fallisce
             messaggio.style.display = 'block';
             messaggio.textContent = "ACCESS DENIED";
-            messaggio.style.color = "#ff0000";
-            
-            // Pulisce e riporta il cursore nel campo
             inputField.value = "";
             inputField.focus();
         }
     }
 
-    // Abilita il tasto Invio per la conferma
-    document.getElementById('passField').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') { controllaAccesso(); }
+    // Invio rapido con tasto Enter
+    document.getElementById('passField').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') controllaAccesso();
     });
 </script>
 
