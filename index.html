@@ -225,17 +225,41 @@
     </div>
 
     <script>
-    function controllaAccesso() {
-      const passInserita = document.getElementById('passInput').value;
-      const passCorretta = "Augmentin875+125";
-
-      if (passInserita === passCorretta) {
-        window.location.href = "app_protetta.html"; 
-      } else {
-        document.getElementById('errore').style.display = 'block';
-      }
+    // Funzione per criptare la password in SHA-256
+    async function generaHash(stringa) {
+        const msgUint8 = new TextEncoder().encode(stringa);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
-    </script>
+
+    async function validaAccesso() {
+        const input = document.getElementById('passField').value;
+        const feedback = document.getElementById('message');
+        
+        // Generiamo l'hash della password inserita
+        const hashInserito = await generaHash(input);
+
+        // Hash della password "segreta" (cambiala se vuoi)
+        const hashCorretto = "2ebb6c38228d44e590f2305602058448ec628849767a99859f5b6134b223d6a2"; 
+
+        if (hashInserito === hashCorretto) {
+            feedback.textContent = "Password corretta! Accesso in corso...";
+            feedback.className = "success";
+            
+            // Azione dopo il login (es: nasconde il box o cambia pagina)
+            setTimeout(() => {
+                document.getElementById('login-container').style.display = 'none';
+                // window.location.href = "area-privata.html"; 
+            }, 1000);
+            
+        } else {
+            feedback.textContent = "Password errata.";
+            feedback.className = "error";
+            document.getElementById('passField').value = ""; // Pulisce il campo
+        }
+    }
+</script>
 
 </body>
 </html>
