@@ -229,54 +229,43 @@
         const inputField = document.getElementById('passField');
         const messaggio = document.getElementById('errore');
         
-        // 1. Legge il valore e toglie eventuali spazi vuoti accidentali
-        const passwordInserita = inputField.value.trim();
-        
-        // 2. Converte la password inserita in Base64 (una codifica standard)
-        const codificaInserita = btoa(passwordInserita);
+        // Pulizia spazi e codifica della password scritta dall'utente
+        const passInserita = btoa(inputField.value.trim());
 
         /* 
            PASSWORD IMPOSTATA: mrna2024
-           LA SUA CODIFICA CORRISPONDENTE È: bXJuYTIwMjQ=
+           Il codice corrispondente è: bXJuYTIwMjQ=
         */
-        const codificaCorretta = "bXJuYTIwMjQ="; 
+        const passCorretta = "bXJuYTIwMjQ="; 
 
-        if (codificaInserita === codificaCorretta) {
-            // --- SUCCESSO ---
-            messaggio.style.display = "block";
+        if (passInserita === passCorretta) {
+            // Mostra messaggio di successo
+            messaggio.style.display = 'block';
             messaggio.textContent = "ACCESS GRANTED";
             messaggio.style.color = "#00ff00";
             
-            // Effetto sparizione del box
+            // Reindirizzamento dopo un breve ritardo per mostrare il messaggio
             setTimeout(() => {
-                const ui = document.querySelector('.gatekeeper-ui');
-                ui.style.transition = "all 0.8s ease";
-                ui.style.opacity = "0";
-                ui.style.transform = "translateY(20px)";
-                setTimeout(() => { ui.style.display = "none"; }, 800);
-            }, 500);
-            
+                window.location.href = "app_protetta.html"; 
+            }, 800);
+
         } else {
-            // --- ERRORE ---
-            messaggio.style.display = "block";
+            // Mostra messaggio di errore
+            messaggio.style.display = 'block';
             messaggio.textContent = "ACCESS DENIED";
             messaggio.style.color = "#ff0000";
             
-            // Animazione di "shake" (vibrazione) per l'errore
-            inputField.style.border = "1px solid red";
-            setTimeout(() => { inputField.style.border = "none"; }, 500);
-            
-            inputField.value = ""; 
+            // Pulisce e riporta il cursore nel campo
+            inputField.value = "";
             inputField.focus();
         }
     }
 
-    // Permette di premere "Invio" per accedere velocemente
+    // Abilita il tasto Invio per la conferma
     document.getElementById('passField').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') { controllaAccesso(); }
     });
 </script>
-
 
 </body>
 </html>
